@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ST7567 commands via Web Serial API</title>
+    <style>
+        table {
+            border-collapse: collapse;
+        }
+
+        table tr td,  table tr th{
+            border: 1px solid black;
+            margin: 0;
+            padding: 0.5em;
+        }
+        
+        table tr th {
+            line-height: 2em;
+        }
+
+        .mcu-cmd {
+            display: block;
+        }
+
+        .mcu-cmd:not(:first-child) {
+            margin-top: .5em;
+        }
+
+        .pwn {
+            border: 1px solid black ;
+            display: inline;
+            font-family: monospace;
+            font-size:18px;
+            font-weight:bold;
+            cursor: default;
+            padding: 0 .5em 0 .5em;
+            margin: 0 .1em 0 .1em;
+        }
+
+        .cmd-fixed-part {
+            background-color: rgb(216, 216, 216);
+            color:gray;
+        }
+
+        .mcu-cmd-legend {
+            color:gray;
+        }
+
+        .mcu-cmd-legend > p {
+            border: 1px solid black ;
+            display: inline;
+            font-family: monospace;
+            font-size:18px;
+            font-weight:bold;
+            padding: 0 .225em 0 .225em;
+            margin: 0 .1em 0 .1em;
+            cursor: default;
+        }
+
+        .mcu-cmd-legend > *::before {
+            content: "D";
+            color:gray;
+        }
+
+        .mcu-cmd-hex { font-family: monospace; font-size:18px;}
+
+        #portConnectionStatus {margin:2em;font-style: italic;}
+    </style>
+</head>
+<body>
+    <h3>ST7567 led display controller commands via Web Serial API</h3>
+    
+    <div style="margin-left: 3em;background-color: rgb(240, 250, 255); padding: 0 1em 0 1em; float:left;">
+        <p><strong>Disclaimer</strong></p>
+        <div>As of mid-2024, only Chrome, Opera and Edge support Web Serial API:</div>
+        <ul style="margin-top:0">
+            <li>edge://flags/#enable-experimental-web-platform-features</li>
+            <li>chrome://flags/#enable-experimental-web-platform-features</li>
+            <li>opera://flags Experimental Web Platform features</li>
+        </ul>
+
+        <div>uri schemes supported:</div>
+        <ul style="margin-top:0">
+            <li><strong>https://</strong> only supported for remote sites</li>
+            <li><strong>http://</strong> also supported for localhost</li>
+            <li><strong>file://</strong> supported for local filesystem</li>
+        </ul>
+    </div>
+    <div style="clear: both;"></div>
+    <p><button type="button" onclick="connectSerial()">Connect to COM port</button><span id="portConnectionStatus">Port disconnected</span></p>
+
+	<table>
+		<tr>
+			<th>Instruction</th>
+			<th>Command byte<br><span class="mcu-cmd-legend"><p>7</p><p>6</p><p>5</p><p>4</p><p>3</p><p>2</p><p>1</p><p>0</p></span></th>
+            <th>Hex</th>
+            <th>Description</th>
+            <th>Action</th>
+		</tr>
+        <tr>
+			<td>(11) Bias Select</td>
+			<td><span class="mcu-cmd" onclick="changeBit(event)">1010001-1</span></td>
+            <td class="mcu-cmd-hex"></td>
+            <td>0=1/9; 1=1/7 (at 1/65 duty)</td>
+			<td><button type="button" class="sendButton" onclick="sendString(this)">Send</button></td>
+		</tr>
+		<tr>
+			<td>(16) Power Control</td>
+			<td><span class="mcu-cmd" onclick="changeBit(event)">00101-111</span></td>
+            <td class="mcu-cmd-hex"></td>
+            <td>Control built-in power circuit ON/OFF<br>
+                D2-VB, D1-VR, D0-VF<br>
+                VB=0/1: Built-in Booster OFF/ON<br>
+                VR=0/1: Built-in Regulator OFF/ON<br>
+                VF=0/1: Built-in Follower OFF/ON
+            </td>
+			<td><button type="button" class="sendButton" onclick="sendString(this)">Send</button></td>
+		</tr>
+        <tr>
+			<td>(17) Regulation Ratio</td>
+			<td><span class="mcu-cmd" onclick="changeBit(event)">00100-111</span></td>
+            <td class="mcu-cmd-hex"></td>
+            <td>Select regulation resistor ratio</td>
+			<td><button type="button" class="sendButton" onclick="sendString(this)">Send</button></td>
+		</tr>
+		<tr>
+			<td>(18) Set EV</td>
+			<td><span class="mcu-cmd" onclick="changeBit(event)">10000001</span><span class="mcu-cmd" onclick="changeBit(event)">00-001001</span></td>
+            <td class="mcu-cmd-hex"></td>
+            <td>Double command!! <br>Set electronic volume (EV) level</td>
+			<td><button type="button" class="sendButton" onclick="sendString(this)">Send</button></td>
+		</tr>
+		<tr>
+			<td>(19) Set Booster</td>
+			<td><span class="mcu-cmd" onclick="changeBit(event)">11111000</span><span class="mcu-cmd" onclick="changeBit(event)">0000000-1</span></td>
+            <td class="mcu-cmd-hex"></td>
+            <td>Double command!!<br>Set booster level:<br>BL=0: 4X<br>BL=1: 5X</td>
+			<td><button type="button" class="sendButton" onclick="sendString(this)">Send</button></td>
+		</tr>
+
+
+
+
+    </table>
+
+
+    <script>
+        const mcu_cmd_str_all_spans = document.querySelectorAll('table tr td span.mcu-cmd');
+        mcu_cmd_str_all_spans.forEach( mcu_cmd_str_span => {
+            const mcu_cmd_str = mcu_cmd_str_span.textContent;
+            mcu_cmd_str_span.textContent = '';
+            let mcu_cmd_str_formatted = '';
+            let bit_class = 'cmd-fixed-part';
+            for(i=0;i<=mcu_cmd_str.length-1; i++)
+            {
+                let one_bit = mcu_cmd_str.substr(i,1);
+                if (one_bit == '-')
+                    bit_class = 'cmd-variable-part';
+                else
+                    mcu_cmd_str_formatted += "<span class='pwn " + bit_class + "'>" + one_bit + "</span>";
+            }
+            mcu_cmd_str_span.innerHTML = mcu_cmd_str_formatted;
+            let str = parseInt(mcu_cmd_str_span.textContent,2).toString(16).padStart(2, '0');
+            mcu_cmd_str_span.closest('td').nextElementSibling.innerHTML += '<div>0x' + str.toUpperCase() + '</div>';
+        });
+
+        function changeBit(event) {
+            const clickedSpan = event.target;
+            if (clickedSpan.tagName.toLowerCase() === 'span') {
+                const spanContent = clickedSpan.textContent;
+                if ( clickedSpan.classList.contains('cmd-variable-part') ) {
+                    clickedSpan.innerHTML = clickedSpan.textContent == '0' ? '1' : '0';
+                    let decimalNumber = parseInt(clickedSpan.closest('.mcu-cmd').textContent, 2);
+                    let byte_number = clickedSpan.closest('td').childElementCount;
+                    clickedSpan.closest('td').nextElementSibling.children[byte_number-1].innerHTML = '0x' + decimalNumber.toString(16).padStart(2, '0').toUpperCase();
+                }
+                
+
+            }
+        }
+
+
+
+        let port;
+        let writer;
+
+        async function connectSerial() {
+            try {
+                // Request a port and open a connection
+                port = await navigator.serial.requestPort();
+                await port.open({ baudRate: 9600 });
+
+                const port_info_entries = Object.entries(port.getInfo());
+                document.getElementById('portConnectionStatus').innerHTML = 'Port information: ' + port_info_entries.toString();
+
+                writer = port.writable.getWriter();
+                console.log("Port connected and writer obtained");
+
+                // Handle disconnection
+                port.addEventListener('disconnect', () => {
+                    document.getElementById('portConnectionStatus').innerHTML = 'Port disconnected';
+                    writer.releaseLock();
+                    writer = null;
+                });
+
+            } catch (error) {
+                alert('Error connecting to serial port:' + error);
+            }
+        }
+
+        async function sendString(clickedElement) {
+            if (!writer) {
+                console.log('Serial port is not open');
+                return;
+            }
+            const cmd_bytes = clickedElement.closest('td').previousElementSibling.previousElementSibling.previousElementSibling.querySelectorAll('.mcu-cmd');
+            let str_to_send = '';
+            cmd_bytes.forEach( cmd_byte => { str_to_send += '0b' + cmd_byte.textContent + ','; });            
+			str_to_send = str_to_send.slice(0, -1) + '\n';
+            if (str_to_send) {
+                const data = new TextEncoder().encode(str_to_send); // Convert to byte array
+                await writer.write(data); // Write to the serial port
+                console.log(`Sent: ${str_to_send}`);
+            } else {
+                console.log('No input string to send');
+            }
+        }
+    </script>
+</body>
+</html>
