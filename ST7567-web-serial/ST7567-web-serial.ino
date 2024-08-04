@@ -1,5 +1,6 @@
-# More info:
-# https://github.com/trng/st7567webserial
+#
+# ST7567 led display controller commands via Web Serial API
+# more info: https://github.com/trng/st7567webserial
 #
 
 #include <Arduino.h>
