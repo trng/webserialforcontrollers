@@ -1,4 +1,4 @@
-# st7567webserial
+# Webserial API for controllers
 
 lcd/oled/tft display controller's commands via Web Serial API.
 
