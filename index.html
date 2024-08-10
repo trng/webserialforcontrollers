@@ -1,9 +1,12 @@
 <!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
+<!-- saved from url=(0123)file:///C:/Users/kserh/OneDrive/%D0%94%D0%BE%D0%BA%D1%83%D0%BC%D0%B5%D0%BD%D1%82%D1%8B/Arduino/SH1107-experiment/index.html -->
+<html lang="en"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ST7567 commands via Web Serial API</title>
+    <title>SH1107 commands via Web Serial API</title>
+
+    <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+
     <style>
         table {
             border-collapse: collapse;
@@ -15,8 +18,9 @@
             padding: 0.5em;
         }
         
-        table tr th {
+        #commandSetTable tr th {
             line-height: 2em;
+            background-color: rgb(235, 235, 235);
         }
 
         .mcu-cmd {
@@ -65,143 +69,513 @@
 
         .mcu-cmd-hex { font-family: monospace; font-size:18px;}
 
-        #portConnectionStatus {margin:2em;font-style: italic;}
+        #portConnectionStatus, #tableEditEnabled, #tableEditDisabled {margin:2em;font-style: italic;}
+
+        #commandSetTable th:last-child, #commandSetTable td:last-child {
+            color: rgb(0, 107, 0);
+            display:none;
+        }
+
+
+        :root {
+            --green-for-edit-mode: rgb(211,255,211);
+        }
+
+        .editModeBgColorized {
+            background-color: var(--green-for-edit-mode);
+        }
+        
+        #tableEditEnabled {
+            background-color: var(--green-for-edit-mode);
+            display:none;
+        }
+        
+        #tableEditDisabled {
+            display:inline;
+        }
+
+        #commandSetTable td:last-child {
+            font-weight: bold;
+            font-size: 85%;
+            font-family: monospace;
+        }
+
+        #commandSetTable td:last-child button {
+            width: 3em;
+            color: inherit;
+            font-size: inherit;
+            font-family: inherit;
+            font-weight: inherit;
+        }
+
+        #commandSetTable td:last-child input[type="radio"] {
+            position:relative;
+            top:0.25em;
+        }
+
+        #disclaimerDiv {
+            background-color: rgb(240, 243, 255);
+            padding: 0 1em 1em 1em; float:left;
+        }
+
+        #disclaimerDiv table {
+            margin-left: 3em;
+        }
+        .disclaimerHidden { display: none; }
+        
+        :root {
+            --before-disclaimer: "- ";
+        }
+        
+        #disclaimerDiv > p::before { content: var(--before-disclaimer); }
+
+        #cloudSignUpAndSignIn {
+            float: left;
+            background-color: rgb(240, 243, 255);
+        }
+
+        #authWithEmail {
+            padding: 1em;
+        }
+
     </style>
 </head>
 <body>
-    <h3>ST7567 led display controller commands via Web Serial API (more info: <a href="https://github.com/trng/st7567webserial">https://github.com/trng/st7567webserial</a>)</h3>
+    <h3>LED/OLED/TFT display controller commands via Web Serial API (more info: <a href="https://github.com/trng/webserialforcontrollers/">https://github.com/trng/webserialforcontrollers/</a>)</h3>
     
-    <div style="margin-left: 3em;background-color: rgb(240, 250, 255); padding: 0 1em 0 1em; float:left;">
+    <script>
+        function toggleDisclaimer(event) {
+            document.getElementById('disclaimerTable').classList.toggle('disclaimerHidden');
+            if (document.getElementById('disclaimerTable').classList.contains('disclaimerHidden')) { 
+                document.documentElement.style.setProperty('--before-disclaimer', '"+ "');
+            } else {
+                document.documentElement.style.setProperty('--before-disclaimer', '"- "');
+            }
+            
+        }
+    </script>
+    <div id="disclaimerDiv" onclick="toggleDisclaimer(event)">
         <p><strong>Disclaimer</strong></p>
-        <div>As of mid-2024, only Chrome, Opera and Edge support Web Serial API:</div>
-        <ul style="margin-top:0">
-            <li>edge://flags/#enable-experimental-web-platform-features</li>
-            <li>chrome://flags/#enable-experimental-web-platform-features</li>
-            <li>opera://flags Experimental Web Platform features</li>
-        </ul>
-
-        <div>uri schemes supported:</div>
-        <ul style="margin-top:0">
-            <li><strong>https://</strong> only supported for remote sites</li>
-            <li><strong>http://</strong> also supported for localhost</li>
-            <li><strong>file://</strong> supported for local filesystem</li>
-        </ul>
+        <table id="disclaimerTable" class="disclaimerVisible">
+            <tr>
+                <td>
+                    
+                    <div>As of mid-2024, only Chrome, Opera and Edge support Web Serial API:</div>
+                    <ul style="margin-top:0">
+                        <li>edge://flags/#enable-experimental-web-platform-features</li>
+                        <li>chrome://flags/#enable-experimental-web-platform-features</li>
+                        <li>opera://flags Experimental Web Platform features</li>
+                    </ul>
+                </td>
+                <td>
+                    <div>URI schemes supported:</div>
+                    <ul style="margin-top:0">
+                        <li><span style="display:inline-block;width:8em">for remote sites</span> : https:// only</li>
+                        <li><span style="display:inline-block;width:8em">for localhost</span> : https://, http://</li>
+                        <li><span style="display:inline-block;width:8em">for local filesystem</span> : file://</li>
+                    </ul>
+                </td>
+            </tr>
+        </table>
     </div>
+    <div style="clear: both;margin-bottom: 1em;"></div>
+
+    <div id="cloudSignUpAndSignIn">
+        <p><strong>Save to WebSerialForControllers Cloud</strong></p>
+        <p>
+            <label title="email"><input type="radio" name="cloudAuthType" value="email" onchange="cloudAuthTypeChanged(event)" checked>email</label>
+            <label title="github"><input type="radio" name="cloudAuthType" value="github" onchange="cloudAuthTypeChanged(event)">github</label>
+        </p>
+        <script>
+            function cloudAuthTypeChanged(event) {
+                console.log(event.target.value);
+            }
+        </script>
+        <div id="authWithEmail">
+            <p>Sign Up 
+                <input type="email" id="sign-up-email" placeholder="Email" />
+                <input type="password" id="sign-up-password" placeholder="Password" />
+                <button id="email-sign-up-button">Sign Up</button>
+            </p>
+       
+            <p>Sign In 
+                <input type="email" id="sign-in-email" placeholder="Email" />
+                <input type="password" id="sign-in-password" placeholder="Password" />
+                <button id="email-sign-in-button">Sign In</button>
+            </p>
+        </div>
+        <div id="authWithGitHub">
+            <p>Sign In with GitHub
+                <button id="github-sign-in-button">Sign In</button>
+            </p>
+        </div>
+        
+        <p>
+            <button id="supabase-logout-button">Logout from Cloud</button>
+        </p>
+        <script>
+            document.getElementById('supabase-logout-button').addEventListener('click', async () => {
+                const { error } = await supabaseClient.auth.signOut();
+                if (error) 
+                    console.error('Error logging out:', error.message);
+                else
+                    console.log('User logged out successfully');
+                checkSession();
+            });
+        </script>
+    
+    </div>
+          
     <div style="clear: both;"></div>
-    <p><button type="button" onclick="connectSerial()">Connect to COM port</button><span id="portConnectionStatus">Port disconnected</span></p>
 
-	<table>
-		<tr>
-			<th>Instruction</th>
-			<th>Command byte<br><span class="mcu-cmd-legend"><p>7</p><p>6</p><p>5</p><p>4</p><p>3</p><p>2</p><p>1</p><p>0</p></span></th>
-            <th>Hex</th>
-            <th>Description</th>
-            <th>Action</th>
-		</tr>
+
+    <p><button type="button" onclick="connectSerial()" style="width: 15em">Connect to COM port</button><span id="portConnectionStatus">Port disconnected</span></p>
+    <p>
+        <button type="button" onclick="toggleEditMode()" style="width: 15em">Toggle command set editing</button>
+        <span id="tableEditDisabled" style="display: inline;">Edit mode disabled.</span>
+        <span id="tableEditEnabled" style="display: none;">Edit mode enabled. <strong>Don't forget to save modified page</strong><br>
+            Fixed bits can be changed with left-mouse-click.<br>
+            Ctrl + left-mouse-click changes is bit fixed or variable.
+        </span>
+    </p>
+
+
+
+    <p><button id="push-record-button">Push record</button></p>
+    <script>
+        const supabaseUrl = 'https://glzoxrgymuxkugtxezdw.supabase.co';
+        const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imdsem94cmd5bXV4a3VndHhlemR3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3MjMyNzY3NDEsImV4cCI6MjAzODg1Mjc0MX0.ZlCoNlHpB90VjACIjeO7E1u2sQ1qzSQqc7ww228Twg4';
+        const supabaseClient = supabase.createClient(supabaseUrl, supabaseKey);
+        console.log('Supabase initialized:', supabaseClient);
+
+        // Email Sign Up
+        document.getElementById('email-sign-up-button').addEventListener('click', async () => {
+            const email = document.getElementById('sign-up-email').value;
+            const password = document.getElementById('sign-up-password').value;
+            
+            const { data, error } = await supabaseClient.auth.signUp({
+            email: email,
+            password: password,
+            });
+
+            if (error) {
+            console.error('Sign-up error:', error.message);
+            } else {
+            console.log('Sign-up data:', data);
+            }
+        });
+
+        // Email Sign In
+        document.getElementById('email-sign-in-button').addEventListener('click', async () => {
+            const email = document.getElementById('sign-in-email').value;
+            const password = document.getElementById('sign-in-password').value;
+            
+            const { data, error } = await supabaseClient.auth.signInWithPassword({
+            email: email,
+            password: password,
+            });
+
+            if (error) {
+            console.error('Sign-in error:', error.message);
+            } else {
+            console.log('Sign-in data:', data);
+            }
+        });
+
+        // Github Sign In
+        document.getElementById('github-sign-in-button').addEventListener('click', async () => {
+            const { data, error } = await supabaseClient.auth.signInWithOAuth({
+                provider: 'github'
+            });
+
+            if (error)
+                console.error('Sign-in error:', error.message);
+            else
+                console.log('Sign-in data:', data);
+            checkSession()
+        });        
+
+        // Check user session
+        async function checkSession() {
+            const { data: { session }, error } = await supabaseClient.auth.getSession();
+            
+            if (error) {
+            console.error('Error fetching session:', error.message);
+            } else if (!session) {
+            console.log('User not authenticated');
+            } else {
+            console.log('User authenticated:', session.user);
+            }
+        }
+
+        // Define an async function to interact with the database
+        document.getElementById('push-record-button').addEventListener('click', async () => {
+            // Call checkSession periodically or after sign-in
+            checkSession();
+
+            // Insert a new message into the messages table
+            const command_set_tbody = document.getElementById('commandSetTable').querySelector('tbody').innerHTML;
+            const { data, error } = await supabaseClient
+                .from('lcdoledtftcontrollers')
+                .insert(
+                    [{ controllername: 'SH1107', tabletr: command_set_tbody }]
+                );
+
+            if (error)
+                console.error('Error inserting data:', error);
+            else
+                console.log('Data inserted:', data);
+
+            // Retrieve the message from the messages table
+            const { data: messages, error: fetchError } = await supabaseClient
+                .from('lcdoledtftcontrollers')
+                .select('*');
+
+            if (fetchError)
+                console.error('Error fetching data:', fetchError);
+            else
+                console.log('Fetched messages:', messages);
+        });
+
+
+    </script>
+
+
+	<table id="commandSetTable" contenteditable="false">
+        <thead>
+            <tr>
+                <th>Instruction</th>
+                <th>Command byte(s)<br><span class="mcu-cmd-legend"><p>7</p><p>6</p><p>5</p><p>4</p><p>3</p><p>2</p><p>1</p><p>0</p></span></th>
+                <th>Hex</th>
+                <th>Description</th>
+                <th>Action</th>
+                <th>Row editor</th>
+            </tr>
+        </thead>
+		<tbody>
         <tr>
-			<td>(11) Bias Select</td>
-			<td><span class="mcu-cmd" onclick="changeBit(event)">1010001-1</span></td>
-            <td class="mcu-cmd-hex"></td>
-            <td>0=1/9; 1=1/7 (at 1/65 duty)</td>
-			<td><button type="button" class="sendButton" onclick="sendString(this)">Send</button></td>
-		</tr>
-		<tr>
-			<td>(16) Power Control</td>
-			<td><span class="mcu-cmd" onclick="changeBit(event)">00101-111</span></td>
-            <td class="mcu-cmd-hex"></td>
-            <td>Control built-in power circuit ON/OFF<br>
-                D2-VB, D1-VR, D0-VF<br>
-                VB=0/1: Built-in Booster OFF/ON<br>
-                VR=0/1: Built-in Regulator OFF/ON<br>
-                VF=0/1: Built-in Follower OFF/ON
+			<td contenteditable="false" class="">(11) Bias Select</td>
+			<td>
+                <div class="mcu-cmd" onclick="changeBit(event)"><span class="pwn cmd-fixed-part">1</span><span class="pwn cmd-fixed-part">0</span><span class="pwn cmd-fixed-part">1</span><span class="pwn cmd-fixed-part">0</span><span class="pwn cmd-fixed-part">0</span><span class="pwn cmd-fixed-part">0</span><span class="pwn cmd-variable-part">1</span><span class="pwn cmd-variable-part">1</span></div>
+                <div class="mcu-cmd" onclick="changeBit(event)"><span class="pwn cmd-fixed-part">1</span><span class="pwn cmd-fixed-part">0</span><span class="pwn cmd-fixed-part">0</span><span class="pwn cmd-fixed-part">0</span><span class="pwn cmd-fixed-part">0</span><span class="pwn cmd-variable-part">0</span><span class="pwn cmd-variable-part">0</span><span class="pwn cmd-variable-part">1</span></div>
             </td>
+            <td class="mcu-cmd-hex"><div>0xA3</div></td>
+            <td contenteditable="false" class="">0=1/9; 1=1/7 (at 1/65 duty)</td>
 			<td><button type="button" class="sendButton" onclick="sendString(this)">Send</button></td>
+            <td>
+                <form>
+                    <button type="button" onclick="delRow(event)" title="Delete row">Del</button> 
+                    <label title="1-byte command"><input type="radio" name="commandLength" value="1" onchange="commandLengthChanged(event)">1 byte</label><br>
+                    <button type="button" onclick="dupRow(event)" title="Insert row">Dup</button> 
+                    <label title="2-bytes command"><input type="radio" name="commandLength" value="2" onchange="commandLengthChanged(event)">2 bytes</label>
+                </form>
+            </td>
 		</tr>
-        <tr>
-			<td>(17) Regulation Ratio</td>
-			<td><span class="mcu-cmd" onclick="changeBit(event)">00100-111</span></td>
-            <td class="mcu-cmd-hex"></td>
-            <td>Select regulation resistor ratio</td>
-			<td><button type="button" class="sendButton" onclick="sendString(this)">Send</button></td>
-		</tr>
+
 		<tr>
-			<td>(18) Set EV</td>
-			<td><span class="mcu-cmd" onclick="changeBit(event)">10000001</span><span class="mcu-cmd" onclick="changeBit(event)">00-001001</span></td>
-            <td class="mcu-cmd-hex"></td>
-            <td>Double command!! <br>Set electronic volume (EV) level</td>
+			<td contenteditable="false" class="">(19) Set Booster</td>
+			<td>
+                <div class="mcu-cmd" onclick="changeBit(event)"><span class="pwn cmd-fixed-part">1</span><span class="pwn cmd-fixed-part">1</span><span class="pwn cmd-fixed-part">1</span><span class="pwn cmd-fixed-part">1</span><span class="pwn cmd-fixed-part">1</span><span class="pwn cmd-fixed-part">0</span><span class="pwn cmd-fixed-part">0</span><span class="pwn cmd-fixed-part">0</span></div>
+                
+            </td>
+            <td class="mcu-cmd-hex"><div>0xF8</div></td>
+            <td contenteditable="false" class="">Double command!!<br>Set booster level:<br>BL=0: 4X<br>BL=1: 5X</td>
 			<td><button type="button" class="sendButton" onclick="sendString(this)">Send</button></td>
+            <td>
+                <form>
+                    <button type="button" onclick="delRow(event)" title="Delete row">Del</button> 
+                    <label title="1-byte command"><input type="radio" name="commandLength" value="1" onchange="commandLengthChanged(event)">1 byte</label><br>
+                    <button type="button" onclick="dupRow(event)" title="Insert row">Dup</button> 
+                    <label title="2-bytes command"><input type="radio" name="commandLength" value="2" onchange="commandLengthChanged(event)">2 bytes</label>
+                </form>
+            </td>
 		</tr>
-		<tr>
-			<td>(19) Set Booster</td>
-			<td><span class="mcu-cmd" onclick="changeBit(event)">11111000</span><span class="mcu-cmd" onclick="changeBit(event)">0000000-1</span></td>
-            <td class="mcu-cmd-hex"></td>
-            <td>Double command!!<br>Set booster level:<br>BL=0: 4X<br>BL=1: 5X</td>
-			<td><button type="button" class="sendButton" onclick="sendString(this)">Send</button></td>
-		</tr>
 
 
-
-
-    </table>
+    </tbody></table>
 
 
     <script>
-        const mcu_cmd_str_all_spans = document.querySelectorAll('table tr td span.mcu-cmd');
-        mcu_cmd_str_all_spans.forEach( mcu_cmd_str_span => {
-            const mcu_cmd_str = mcu_cmd_str_span.textContent;
-            mcu_cmd_str_span.textContent = '';
-            let mcu_cmd_str_formatted = '';
-            let bit_class = 'cmd-fixed-part';
-            for(i=0;i<=mcu_cmd_str.length-1; i++)
-            {
-                let one_bit = mcu_cmd_str.substr(i,1);
-                if (one_bit == '-')
-                    bit_class = 'cmd-variable-part';
-                else
-                    mcu_cmd_str_formatted += "<span class='pwn " + bit_class + "'>" + one_bit + "</span>";
-            }
-            mcu_cmd_str_span.innerHTML = mcu_cmd_str_formatted;
-            let str = parseInt(mcu_cmd_str_span.textContent,2).toString(16).padStart(2, '0');
-            mcu_cmd_str_span.closest('td').nextElementSibling.innerHTML += '<div>0x' + str.toUpperCase() + '</div>';
-        });
+        
+        /**
+         * 
+         * Initialization on page load 
+         * 
+         * 
+         */
+        
+        toggleEditMode(false);
+        fillHex();
+
+
+
+
+        /**
+         * 
+         * Command byte(s) processing functions
+         * 
+         * 
+        */
+
+        function fillHex() {
+            const mcu_cmd_str_all_divs = document.querySelectorAll('table tr td div.mcu-cmd');
+            mcu_cmd_str_all_divs.forEach( mcu_cmd_div => {
+                const mcu_cmd_str = mcu_cmd_div.textContent;
+                let bits2hex = '0x' + parseInt(mcu_cmd_div.textContent,2).toString(16).padStart(2, '0').toUpperCase();
+
+                // Find the index of the element among its siblings
+                const children = Array.prototype.slice.call(mcu_cmd_div.parentNode.children);
+                const div_index = children.indexOf(mcu_cmd_div);
+                if (div_index == 0) {
+                    mcu_cmd_div.closest('td').nextElementSibling.innerHTML = '<div>' + bits2hex + '</div>';  // first byte
+                    mcu_cmd_div.closest('tr').querySelector('td form input[type="radio"][name="commandLength"][value="1"]').checked = true;
+                } else {
+                    mcu_cmd_div.closest('td').nextElementSibling.innerHTML += '<div>' + bits2hex + '</div>'; // second byte
+                    mcu_cmd_div.closest('tr').querySelector('td form input[type="radio"][name="commandLength"][value="2"]').checked = true;
+                }
+            });
+        }
+        
 
         function changeBit(event) {
             const clickedSpan = event.target;
+            
             if (clickedSpan.tagName.toLowerCase() === 'span') {
-                const spanContent = clickedSpan.textContent;
-                if ( clickedSpan.classList.contains('cmd-variable-part') ) {
-                    clickedSpan.innerHTML = clickedSpan.textContent == '0' ? '1' : '0';
-                    let decimalNumber = parseInt(clickedSpan.closest('.mcu-cmd').textContent, 2);
-                    let byte_number = clickedSpan.closest('td').childElementCount;
-                    clickedSpan.closest('td').nextElementSibling.children[byte_number-1].innerHTML = '0x' + decimalNumber.toString(16).padStart(2, '0').toUpperCase();
-                }
-                
+                let span_text_content = clickedSpan.textContent;
+                let is_edit_mode = clickedSpan.closest('tr').querySelector('td').contentEditable == "true";
+                let is_variable_part = clickedSpan.classList.contains('cmd-variable-part');
 
+                if ( is_edit_mode && event.ctrlKey ) {
+                    if (is_variable_part)
+                        clickedSpan.classList.replace('cmd-variable-part', 'cmd-fixed-part')
+                    else
+                        clickedSpan.classList.replace('cmd-fixed-part', 'cmd-variable-part');
+                    return;
+                }
+
+                if ( is_variable_part || is_edit_mode ) {
+                    clickedSpan.innerHTML = span_text_content == '0' ? '1' : '0';
+                    let decimalNumber = parseInt(clickedSpan.closest('.mcu-cmd').textContent, 2);
+                    const children = Array.prototype.slice.call(clickedSpan.closest('td').children);
+                    const div_index = children.indexOf(clickedSpan.parentNode);
+                    fillHex();
+                }
             }
         }
 
 
+        /**
+         * 
+         * Editable table
+         * 
+         * 
+        */        
+        function makeColumnEditable(tableId, columnIndex, enableEdit) {
+            var table = document.getElementById(tableId);
+            var rows = table.getElementsByTagName('tr');
+            for (var i = 0; i < rows.length; i++) {
+                var cells = rows[i].getElementsByTagName('td'); // So, <th> will be ignored
+                if (cells.length > columnIndex) {
+                    cells[columnIndex].contentEditable = enableEdit.toString();
+                    if ( enableEdit)
+                        cells[columnIndex].classList.add('editModeBgColorized');
+                    else
+                        cells[columnIndex].classList.remove('editModeBgColorized');
+                }
+            }
+        }
 
-        let port;
-        let writer;
+        function toggleEditMode() {
+            let enable_edit_mode = false;
+            if ( arguments.length === 0 )
+                enable_edit_mode = document.getElementById('tableEditEnabled').style.display == 'none';
+            let sheet = document.styleSheets[0];
+
+            makeColumnEditable('commandSetTable', 0, enable_edit_mode);
+            makeColumnEditable('commandSetTable', 3, enable_edit_mode);
+
+            for (let i = 0; i < sheet.cssRules.length; i++) {
+                const rule = sheet.cssRules[i];
+                if (rule.selectorText === '#commandSetTable th:last-child, #commandSetTable td:last-child') {
+                    if (enable_edit_mode) {
+                        rule.style.removeProperty('display');
+                        document.getElementById('tableEditDisabled').style.display = 'none'; //'inline'
+                        document.getElementById('tableEditEnabled').style.display = 'inline';
+                    }
+                        
+                    else {
+                        rule.style.display = 'none';
+                        document.getElementById('tableEditDisabled').style.display = 'inline'; // 'inline'
+                        document.getElementById('tableEditEnabled').style.display = 'none';
+                    }
+                    
+                }
+            }
+        }
+
+
+        function commandLengthChanged(event) {
+            let cmd_td = event.target.closest('tr').children[1];
+            if (event.target.value == '1') {
+                if (cmd_td.children[1]) cmd_td.removeChild(cmd_td.children[1]);
+            } else {
+                if (cmd_td.children.length == 1) {
+                    const node_clone = cmd_td.querySelector('div').cloneNode(true);
+                    cmd_td.appendChild(node_clone);
+                }
+            }
+            fillHex();
+        }
+
+        function delRow(event) {
+            const current_tbody = event.target.closest('tbody');
+            const current_row = event.target.closest('tr');
+            if (current_tbody.children.length > 1) {
+                current_tbody.removeChild(current_row);
+            } else {
+                current_row.querySelectorAll('td')[0].innerHTML = '';
+                current_row.querySelectorAll('td')[2].innerHTML = '';
+                current_row.querySelectorAll('td')[3].innerHTML = '';
+                current_row.querySelectorAll('td')[1].querySelectorAll('span').forEach( bit_span => { 
+                    bit_span.innerHTML = '0';
+                });
+            }
+                
+        }
+
+        function dupRow(event) {
+            const current_tbody = event.target.closest('tbody');
+            const current_row = event.target.closest('tr');
+            current_tbody.insertBefore( current_row.cloneNode(true), current_row);
+        }
+
+        /**
+         * 
+         * Web Serial API
+         * 
+         * 
+        */
+
+        let web_serial_port;
+        let web_serial_writer;
 
         async function connectSerial() {
             try {
                 // Request a port and open a connection
-                port = await navigator.serial.requestPort();
-                await port.open({ baudRate: 9600 });
+                web_serial_port = await navigator.serial.requestPort();
+                await web_serial_port.open({ baudRate: 9600 });
 
-                const port_info_entries = Object.entries(port.getInfo());
+                const port_info_entries = Object.entries(web_serial_port.getInfo());
                 document.getElementById('portConnectionStatus').innerHTML = 'Port information: ' + port_info_entries.toString();
 
-                writer = port.writable.getWriter();
+                web_serial_writer = web_serial_port.writable.getWriter();
                 console.log("Port connected and writer obtained");
 
                 // Handle disconnection
-                port.addEventListener('disconnect', () => {
+                web_serial_port.addEventListener('disconnect', () => {
                     document.getElementById('portConnectionStatus').innerHTML = 'Port disconnected';
-                    writer.releaseLock();
-                    writer = null;
+                    web_serial_writer.releaseLock();
+                    web_serial_writer = null;
                 });
 
             } catch (error) {
@@ -210,7 +584,7 @@
         }
 
         async function sendString(clickedElement) {
-            if (!writer) {
+            if (!web_serial_writer) {
                 console.log('Serial port is not open');
                 return;
             }
@@ -220,12 +594,13 @@
 			str_to_send = str_to_send.slice(0, -1) + '\n';
             if (str_to_send) {
                 const data = new TextEncoder().encode(str_to_send); // Convert to byte array
-                await writer.write(data); // Write to the serial port
+                await web_serial_writer.write(data); // Write to the serial port
                 console.log(`Sent: ${str_to_send}`);
             } else {
                 console.log('No input string to send');
             }
         }
     </script>
-</body>
-</html>
+
+
+</body></html>
