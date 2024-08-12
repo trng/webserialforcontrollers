@@ -1,14 +1,16 @@
+
+
+const supabaseUrl = 'https://glzoxrgymuxkugtxezdw.supabase.co';
+const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imdsem94cmd5bXV4a3VndHhlemR3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3MjMyNzY3NDEsImV4cCI6MjAzODg1Mjc0MX0.ZlCoNlHpB90VjACIjeO7E1u2sQ1qzSQqc7ww228Twg4';
+const supabaseClient = supabase.createClient(supabaseUrl, supabaseKey);
+console.log('Supabase initialized:', supabaseClient);
+
 /**
  * 
  * supabase wrapper. Should be callod on page load
  * 
  */
 function supabasewrapperOnload() {
-    const supabaseUrl = 'https://glzoxrgymuxkugtxezdw.supabase.co';
-    const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imdsem94cmd5bXV4a3VndHhlemR3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3MjMyNzY3NDEsImV4cCI6MjAzODg1Mjc0MX0.ZlCoNlHpB90VjACIjeO7E1u2sQ1qzSQqc7ww228Twg4';
-    const supabaseClient = supabase.createClient(supabaseUrl, supabaseKey);
-    console.log('Supabase initialized:', supabaseClient);
-
     // Email Sign Up
     document.getElementById('email-sign-up-button').addEventListener('click', async () => {
         const email = document.getElementById('sign-up-email').value;
