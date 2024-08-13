@@ -2,11 +2,12 @@ table {
     border-collapse: collapse;
 }
 
-table tr td,  table tr th{
-    border: 1px solid black;
-    margin: 0;
-    padding: 0.5em;
+
+#setOfButtons:not(td:first-child) {
+    font-style: italic;
+    text-align:center;
 }
+
 
 #commandSetTable tr th {
     line-height: 2em;
@@ -59,7 +60,7 @@ table tr td,  table tr th{
 
 .mcu-cmd-hex { font-family: monospace; font-size:18px;}
 
-#portConnectionStatus, #tableEditEnabled, #tableEditDisabled {margin:2em;font-style: italic;}
+
 
 #commandSetTable th:last-child, #commandSetTable td:last-child {
     color: rgb(0, 107, 0);
@@ -104,6 +105,12 @@ table tr td,  table tr th{
 }
 
 
+#disclaimerDiv table tr td, #disclaimerDiv table tr th, #commandSetTable tr td, #commandSetTable tr th {
+    border: 1px solid black;
+    margin: 0;
+    padding: 0.5em;
+}
+
 #disclaimerDiv ul {
     margin-top:0;
 }
@@ -113,30 +120,10 @@ table tr td,  table tr th{
     width:8em;
 }
 
-.toggledDiv {
-    background-color: rgb(240, 243, 255);
-    padding: 0 1em 1em 1em;
-    float:left;
-}
 
 .toggledDiv table {
     margin-left: 3em;
 }
-
-.divHidden { display: none; }
-
-:root {
-    --before-disclaimer: "- ";
-}
-
-.toggledDiv > p:first-child::before {
-    font-family: monospace;
-    color:red;
-    padding-right: .5em;
-}
-
-.toggledDivOpened > p:first-child::before { content: ' -'; }
-.toggledDivClosed > p:first-child::before { content: ' +'; }
 
 
 .toggledDiv ul, .toggledDiv p {
@@ -146,4 +133,9 @@ table tr td,  table tr th{
 
 #authWithEmail {
     padding: 1em;
+}
+
+
+#setOfButtons td {
+    padding: .5em;
 }

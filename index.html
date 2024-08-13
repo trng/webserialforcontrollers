@@ -8,79 +8,190 @@
     <script src="index.js"></script>
     <script src="supabasewrapper.js"></script>
     <link rel="stylesheet" href="index.css">
+    <style>
+        .tab-container {
+            float: left;
+        }
+
+        .tab-button {
+            display: inline-block;
+            padding: 10px;
+            text-align: center;
+            cursor: pointer;
+            background-color: #fff;
+            border-top: 1px solid #ccc;
+            border-right: 1px solid #ccc;
+            border-left: 1px solid #ccc;
+            border-radius: 5px 5px 0 0;
+            position: relative;
+            top: 1px;
+        }
+
+        .tab-content {
+            border: 1px solid #ccc;
+            border-radius: 0 0 5px 5px;
+            background-color: #f0f0f0;
+            padding: 0.5em;
+        }
+
+        .tab-content-item {
+            display: none;
+        }
+
+        input[type="radio"][name="tab"] {
+            display: none;
+        }
+
+
+        input#tab1:checked ~ .tab-content #content1,
+        input#tab2:checked ~ .tab-content #content2,
+        input#tab3:checked ~ .tab-content #content3,
+        input#tab4:checked ~ .tab-content #content4,
+        input#tab5:checked ~ .tab-content #content5 {
+            display: block;
+        }
+
+        input#tab1:checked ~ .tab-button[for="tab1"],
+        input#tab2:checked ~ .tab-button[for="tab2"],
+        input#tab3:checked ~ .tab-button[for="tab3"],
+        input#tab4:checked ~ .tab-button[for="tab4"],
+        input#tab5:checked ~ .tab-button[for="tab5"] {
+            background-color: #f0f0f0;
+            font-weight: bold;
+        }
+
+        label:has(input[name="controllerIF"]) {
+            display: inline-block;
+            width: 8em;
+
+        }
+
+
+
+    </style>
 </head>
 <body>
     <h3>LED/OLED/TFT display controller commands via Web Serial API (more info: <a href="https://github.com/trng/webserialforcontrollers/">https://github.com/trng/webserialforcontrollers/</a>)</h3>
-    
-    <div id="disclaimerDiv" class="toggledDiv toggledDivOpened">
-        <p onclick="toggleDiv(event)"><strong>Disclaimer</strong></p>
-        <table id="disclaimerTable" class="disclaimerVisible">
-            <tr>
-                <td>
-                    
-                    <div>As of mid-2024, only Chrome, Opera and Edge support Web Serial API:</div>
-                    <ul>
-                        <li>edge://flags/#enable-experimental-web-platform-features</li>
-                        <li>chrome://flags/#enable-experimental-web-platform-features</li>
-                        <li>opera://flags Experimental Web Platform features</li>
-                    </ul>
-                </td>
-                <td>
-                    <div>URI schemes supported:</div>
-                    <ul>
-                        <li><span>for remote sites</span> : https://</li>
-                        <li><span>for localhost</span> : https://, http://</li>
-                        <li><span>for local filesystem</span> : file://</li>
-                    </ul>
-                </td>
-            </tr>
-        </table>
+
+
+
+    <div class="tab-container">
+        <input type="radio" id="tab1" name="tab">
+        <label for="tab1" class="tab-button">Disclaimer</label>
+
+        <input type="radio" id="tab2" name="tab" checked>
+        <label for="tab2" class="tab-button">Settings</label>
+
+        <input type="radio" id="tab3" name="tab">
+        <label for="tab3" class="tab-button">Cloud login</label>
+
+        <input type="radio" id="tab4" name="tab">
+        <label for="tab4" class="tab-button">Help</label>
+
+        <input type="radio" id="tab5" name="tab">
+        <label for="tab5" class="tab-button">Hide tabs</label>
+
+        <div class="tab-content">
+            <div class="tab-content-item" id="content1">
+                <div id="disclaimerDiv">
+                    <table id="disclaimerTable" class="disclaimerVisible">
+                        <tr>
+                            <td>
+                                <div>As of mid-2024, only Chrome, Opera and Edge support Web Serial API:</div>
+                                <ul>
+                                    <li>edge://flags/#enable-experimental-web-platform-features</li>
+                                    <li>chrome://flags/#enable-experimental-web-platform-features</li>
+                                    <li>opera://flags Experimental Web Platform features</li>
+                                </ul>
+                            </td>
+                            <td>
+                                <div>URI schemes supported:</div>
+                                <ul>
+                                    <li><span>for remote sites</span> : https://</li>
+                                    <li><span>for localhost</span> : https://, http://</li>
+                                    <li><span>for local filesystem</span> : file://</li>
+                                </ul>
+                            </td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+            <div id="content2" class="tab-content-item">
+                <div>Controller interface</div>
+                <label><input type="radio" name="controllerIF" checked>I2C - hardware</label>
+                <label><input type="radio" name="controllerIF">I2C - software</label><br />
+                <label><input type="radio" name="controllerIF">SPI - hardware</label>
+                <label><input type="radio" name="controllerIF">SPI - software</label>
+            </div>
+            <div id="content3" class="tab-content-item">
+                <div id="cloudSignUpAndSignIn" class="toggledDiv toggledDivOpened">
+                    <p onclick="toggleDiv(event)"><strong>Save to WebSerialForControllers Cloud</strong></p>
+                    <table>
+                        <tr>
+                            <td>With email:</td>
+                            <td>
+                                Sign Up <input type="email" id="sign-up-email" placeholder="Email" /> <input type="password" id="sign-up-password" placeholder="Password" /> <button id="email-sign-up-button">Sign Up</button><br>
+                                Sign In <input type="email" id="sign-in-email" placeholder="Email" /> <input type="password" id="sign-in-password" placeholder="Password" /> <button id="email-sign-in-button">Sign In</button>
+                            </td>
+                        </tr>
+                        <tr><td>With github:</td><td><button id="github-sign-in-button">Sign In</button></td></tr>
+                        <tr><td colspan="2"><button id="supabase-logout-button">Logout from Cloud</button></td></tr>
+                    </table>
+
+                    <script>
+                        document.getElementById('supabase-logout-button').addEventListener('click', async () => {
+                            const { error } = await supabaseClient.auth.signOut();
+                            if (error)
+                                console.error('Error logging out:', error.message);
+                            else
+                                console.log('User logged out successfully');
+                            checkSession();
+                        });
+                    </script>
+
+                </div>
+            </div>
+            <div id="content4" class="tab-content-item">
+                <div>In command set editing mode:</div>
+                <ul>
+                    <li>Fixed bits can be changed with left-mouse-click.</li>
+                    <li>Ctrl + left-mouse-click: change bit fixed or variable.</li>
+                </ul>
+            </div>
+            <div id="content5" class="tab-content-item">
+
+            </div>
+        </div>
     </div>
+
     <div style="clear: both;margin-bottom: 1em;"></div>
 
-    <div id="cloudSignUpAndSignIn" class="toggledDiv toggledDivOpened">
-        <p onclick="toggleDiv(event)"><strong>Save to WebSerialForControllers Cloud</strong></p>
-        <table>
-            <tr>
-                <td>With email:</td>
-                <td>
-                    Sign Up <input type="email" id="sign-up-email" placeholder="Email" /> <input type="password" id="sign-up-password" placeholder="Password" /> <button id="email-sign-up-button">Sign Up</button><br>
-                    Sign In <input type="email" id="sign-in-email" placeholder="Email" /> <input type="password" id="sign-in-password" placeholder="Password" /> <button id="email-sign-in-button">Sign In</button>
-                </td>
-            </tr>
-            <tr><td>With github:</td><td><button id="github-sign-in-button">Sign In</button></td></tr>
-            <tr><td colspan="2"><button id="supabase-logout-button">Logout from Cloud</button></td></tr>
-        </table>
-        
-        <script>
-            document.getElementById('supabase-logout-button').addEventListener('click', async () => {
-                const { error } = await supabaseClient.auth.signOut();
-                if (error) 
-                    console.error('Error logging out:', error.message);
-                else
-                    console.log('User logged out successfully');
-                checkSession();
-            });
-        </script>
+    <table id="setOfButtons">
+        <tr>
+            <td>
+                <div><button type="button" onclick="connectSerial()" style="width: 15em">Connect to COM port</button></div>
+                <div><span id="portConnectionStatus">Port disconnected</span></div>
+                <div> .</div>
+            </td>
+            <td>
+                <div><button type="button" onclick="toggleEditMode()" style="width: 15em">Toggle command set editing</button></div>
+                <div>
+                    <span id="tableEditDisabled" style="display: inline;">Edit mode disabled.<br />.</span>
+                </div>
+                <div>
+                    <span id="tableEditEnabled" style="display: none;"> Edit mode enabled.<br /><strong>Don't forget to save changes</strong></span>
+                </div>
+            </td>
+            <td>
+                <div><button id="push-record-button">Push controller to cloud</button></div>
+                <div>Cloud disconnected</div>
+                <div> .</div>
+            </td>
+        </tr>
+    </table>
     
-    </div>
-          
-    <div style="clear: both;"></div>
 
-
-    <p><button type="button" onclick="connectSerial()" style="width: 15em">Connect to COM port</button><span id="portConnectionStatus">Port disconnected</span></p>
-    <p>
-        <button type="button" onclick="toggleEditMode()" style="width: 15em">Toggle command set editing</button>
-        <span id="tableEditDisabled" style="display: inline;">Edit mode disabled.</span>
-        <span id="tableEditEnabled" style="display: none;">Edit mode enabled. <strong>Don't forget to save modified page</strong><br>
-            Fixed bits can be changed with left-mouse-click.<br>
-            Ctrl + left-mouse-click changes is bit fixed or variable.
-        </span>
-    </p>
-
-    <p><button id="push-record-button">Push controller to cloud</button></p>
-
-	<table id="commandSetTable" contenteditable="false">
+    <table id="commandSetTable" contenteditable="false">
         <thead>
             <tr>
                 <th>Instruction</th>
@@ -91,47 +202,48 @@
                 <th>Row editor</th>
             </tr>
         </thead>
-		<tbody>
-        <tr>
-			<td contenteditable="false" class="">(11) Bias Select</td>
-			<td>
-                <div class="mcu-cmd" onclick="changeBit(event)"><span class="pwn cmd-fixed-part">1</span><span class="pwn cmd-fixed-part">0</span><span class="pwn cmd-fixed-part">1</span><span class="pwn cmd-fixed-part">0</span><span class="pwn cmd-fixed-part">0</span><span class="pwn cmd-fixed-part">0</span><span class="pwn cmd-variable-part">1</span><span class="pwn cmd-variable-part">1</span></div>
-                <div class="mcu-cmd" onclick="changeBit(event)"><span class="pwn cmd-fixed-part">1</span><span class="pwn cmd-fixed-part">0</span><span class="pwn cmd-fixed-part">0</span><span class="pwn cmd-fixed-part">0</span><span class="pwn cmd-fixed-part">0</span><span class="pwn cmd-variable-part">0</span><span class="pwn cmd-variable-part">0</span><span class="pwn cmd-variable-part">1</span></div>
-            </td>
-            <td class="mcu-cmd-hex"><div>0xA3</div></td>
-            <td contenteditable="false" class="">0=1/9; 1=1/7 (at 1/65 duty)</td>
-			<td><button type="button" class="sendButton" onclick="sendString(this)">Send</button></td>
-            <td>
-                <form>
-                    <button type="button" onclick="delRow(event)" title="Delete row">Del</button> 
-                    <label title="1-byte command"><input type="radio" name="commandLength" value="1" onchange="commandLengthChanged(event)">1 byte</label><br>
-                    <button type="button" onclick="dupRow(event)" title="Insert row">Dup</button> 
-                    <label title="2-bytes command"><input type="radio" name="commandLength" value="2" onchange="commandLengthChanged(event)">2 bytes</label>
-                </form>
-            </td>
-		</tr>
+        <tbody>
+            <tr>
+                <td contenteditable="false" class="">(11) Bias Select</td>
+                <td>
+                    <div class="mcu-cmd" onclick="changeBit(event)"><span class="pwn cmd-fixed-part">1</span><span class="pwn cmd-fixed-part">0</span><span class="pwn cmd-fixed-part">1</span><span class="pwn cmd-fixed-part">0</span><span class="pwn cmd-fixed-part">0</span><span class="pwn cmd-fixed-part">0</span><span class="pwn cmd-variable-part">1</span><span class="pwn cmd-variable-part">1</span></div>
+                    <div class="mcu-cmd" onclick="changeBit(event)"><span class="pwn cmd-fixed-part">1</span><span class="pwn cmd-fixed-part">0</span><span class="pwn cmd-fixed-part">0</span><span class="pwn cmd-fixed-part">0</span><span class="pwn cmd-fixed-part">0</span><span class="pwn cmd-variable-part">0</span><span class="pwn cmd-variable-part">0</span><span class="pwn cmd-variable-part">1</span></div>
+                </td>
+                <td class="mcu-cmd-hex"><div>0xA3</div></td>
+                <td contenteditable="false" class="">0=1/9; 1=1/7 (at 1/65 duty)</td>
+                <td><button type="button" class="sendButton" onclick="sendString(this)">Send</button></td>
+                <td>
+                    <form>
+                        <button type="button" onclick="delRow(event)" title="Delete row">Del</button>
+                        <label title="1-byte command"><input type="radio" name="commandLength" value="1" onchange="commandLengthChanged(event)">1 byte</label><br>
+                        <button type="button" onclick="dupRow(event)" title="Insert row">Dup</button>
+                        <label title="2-bytes command"><input type="radio" name="commandLength" value="2" onchange="commandLengthChanged(event)">2 bytes</label>
+                    </form>
+                </td>
+            </tr>
 
-		<tr>
-			<td contenteditable="false" class="">(19) Set Booster</td>
-			<td>
-                <div class="mcu-cmd" onclick="changeBit(event)"><span class="pwn cmd-fixed-part">1</span><span class="pwn cmd-fixed-part">1</span><span class="pwn cmd-fixed-part">1</span><span class="pwn cmd-fixed-part">1</span><span class="pwn cmd-fixed-part">1</span><span class="pwn cmd-fixed-part">0</span><span class="pwn cmd-fixed-part">0</span><span class="pwn cmd-fixed-part">0</span></div>
-                
-            </td>
-            <td class="mcu-cmd-hex"><div>0xF8</div></td>
-            <td contenteditable="false" class="">Double command!!<br>Set booster level:<br>BL=0: 4X<br>BL=1: 5X</td>
-			<td><button type="button" class="sendButton" onclick="sendString(this)">Send</button></td>
-            <td>
-                <form>
-                    <button type="button" onclick="delRow(event)" title="Delete row">Del</button> 
-                    <label title="1-byte command"><input type="radio" name="commandLength" value="1" onchange="commandLengthChanged(event)">1 byte</label><br>
-                    <button type="button" onclick="dupRow(event)" title="Insert row">Dup</button> 
-                    <label title="2-bytes command"><input type="radio" name="commandLength" value="2" onchange="commandLengthChanged(event)">2 bytes</label>
-                </form>
-            </td>
-		</tr>
+            <tr>
+                <td contenteditable="false" class="">(19) Set Booster</td>
+                <td>
+                    <div class="mcu-cmd" onclick="changeBit(event)"><span class="pwn cmd-fixed-part">1</span><span class="pwn cmd-fixed-part">1</span><span class="pwn cmd-fixed-part">1</span><span class="pwn cmd-fixed-part">1</span><span class="pwn cmd-fixed-part">1</span><span class="pwn cmd-fixed-part">0</span><span class="pwn cmd-fixed-part">0</span><span class="pwn cmd-fixed-part">0</span></div>
+
+                </td>
+                <td class="mcu-cmd-hex"><div>0xF8</div></td>
+                <td contenteditable="false" class="">Double command!!<br>Set booster level:<br>BL=0: 4X<br>BL=1: 5X</td>
+                <td><button type="button" class="sendButton" onclick="sendString(this)">Send</button></td>
+                <td>
+                    <form>
+                        <button type="button" onclick="delRow(event)" title="Delete row">Del</button>
+                        <label title="1-byte command"><input type="radio" name="commandLength" value="1" onchange="commandLengthChanged(event)">1 byte</label><br>
+                        <button type="button" onclick="dupRow(event)" title="Insert row">Dup</button>
+                        <label title="2-bytes command"><input type="radio" name="commandLength" value="2" onchange="commandLengthChanged(event)">2 bytes</label>
+                    </form>
+                </td>
+            </tr>
 
 
-    </tbody></table>
+        </tbody>
+    </table>
 
 
     <script>

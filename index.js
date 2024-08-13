@@ -6,28 +6,7 @@
 function onThisPageLoad() {
     toggleEditMode(false);
     fillHex();
-}        
-
-
-/**
- * 
- * Hide/show <table> wihtin closest <div>
- * 
- */
-function toggleDiv(event) {
-    const toggle_div = event.target.closest('div');
-    const toggle_table = event.target.closest('div').querySelector('table');
-    const div_computed_width = window.getComputedStyle(toggle_div).width;
-    toggle_table.classList.toggle('divHidden');
-    if (toggle_table.classList.contains('divHidden')) {
-        toggle_div.style.width = div_computed_width;
-        toggle_div.classList.replace('toggledDivOpened', 'toggledDivClosed');
-    } else {
-        toggle_div.classList.replace('toggledDivClosed', 'toggledDivOpened');
-    }
 }
-
-
 
 
 
@@ -109,7 +88,6 @@ function toggleEditMode() {
     let enable_edit_mode = false;
     if ( arguments.length === 0 )
         enable_edit_mode = document.getElementById('tableEditEnabled').style.display == 'none';
-    console.log( document.styleSheets);
     makeColumnEditable('commandSetTable', 0, enable_edit_mode);
     makeColumnEditable('commandSetTable', 3, enable_edit_mode);
     Array.from(document.styleSheets).forEach(sheet => {
