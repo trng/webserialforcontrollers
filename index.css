@@ -1,72 +1,8 @@
-table {
-    border-collapse: collapse;
+fieldset {
+    border: none;
+    --tabs-bg-color: #fcfcfc;
+    --tabs-border-color: #ccc;
 }
-
-
-#setOfButtons:not(td:first-child) {
-    font-style: italic;
-    text-align:center;
-}
-
-
-#commandSetTable tr th {
-    line-height: 2em;
-    background-color: rgb(235, 235, 235);
-}
-
-.mcu-cmd {
-    display: block;
-}
-
-.mcu-cmd:not(:first-child) {
-    margin-top: .5em;
-}
-
-.pwn {
-    border: 1px solid black ;
-    display: inline;
-    font-family: monospace;
-    font-size:18px;
-    font-weight:bold;
-    cursor: default;
-    padding: 0 .5em 0 .5em;
-    margin: 0 .1em 0 .1em;
-}
-
-.cmd-fixed-part {
-    background-color: rgb(216, 216, 216);
-    color:gray;
-}
-
-.mcu-cmd-legend {
-    color:gray;
-}
-
-.mcu-cmd-legend > p {
-    border: 1px solid black ;
-    display: inline;
-    font-family: monospace;
-    font-size:18px;
-    font-weight:bold;
-    padding: 0 .225em 0 .225em;
-    margin: 0 .1em 0 .1em;
-    cursor: default;
-}
-
-.mcu-cmd-legend > *::before {
-    content: "D";
-    color:gray;
-}
-
-.mcu-cmd-hex { font-family: monospace; font-size:18px;}
-
-
-
-#commandSetTable th:last-child, #commandSetTable td:last-child {
-    color: rgb(0, 107, 0);
-    display: none;
-}
-
 
 :root {
     --green-for-edit-mode: rgb(211,255,211);
@@ -76,14 +12,188 @@ table {
     background-color: var(--green-for-edit-mode);
 }
 
+
+.tab-container {
+    float: left;
+}
+
+.tab-button {
+    display: inline-block;
+    padding: 10px;
+    text-align: center;
+    cursor: pointer;
+    border-top: 1px solid var(--tabs-border-color);
+    border-right: 1px solid var(--tabs-border-color);
+    border-left: 1px solid var(--tabs-border-color);
+    border-bottom: 1px solid var(--tabs-border-color);
+    border-radius: 5px 5px 0 0;
+    position: relative;
+    top: 1px;
+}
+
+
+input[name="tabRadio"]:not(:checked) + label {
+    background: linear-gradient(#fcfcfc 75%, #ebebeb);
+}
+
+
+.tab-content {
+    border: 1px solid var(--tabs-border-color);
+    border-radius: 0 0 5px 5px;
+    background-color: var(--tabs-bg-color);
+    padding: 0.5em;
+}
+
+.tab-content-item {
+    display: none;
+}
+
+input[type="radio"][name="tabRadio"] {
+    display: none;
+}
+
+
+input#tab1:checked ~ .tab-content #content1,
+input#tab2:checked ~ .tab-content #content2,
+input#tab3:checked ~ .tab-content #content3,
+input#tab4:checked ~ .tab-content #content4,
+input#tab5:checked ~ .tab-content #content5,
+input#tab6:checked ~ .tab-content #content6 {
+    display: block;
+}
+
+input#tab1:checked ~ .tab-button[for="tab1"],
+input#tab2:checked ~ .tab-button[for="tab2"],
+input#tab3:checked ~ .tab-button[for="tab3"],
+input#tab4:checked ~ .tab-button[for="tab4"],
+input#tab5:checked ~ .tab-button[for="tab5"],
+input#tab6:checked ~ .tab-button[for="tab6"] {
+    background-color: var(--tabs-bg-color);
+    font-weight: bold;
+    border-bottom: 1px solid var(--tabs-bg-color);
+}
+
+
+#disclaimerDiv table tr td, #disclaimerDiv table tr th, #commandSetTable tr td, #commandSetTable tr th {
+    border: 1px solid black;
+    margin: 0;
+    padding: 0.5em;
+}
+
+#disclaimerDiv ul {
+    margin-top: 0;
+}
+
+#disclaimerDiv ul li span {
+    display: inline-block;
+    width: 8em;
+}
+
+
+.toggledDiv table {
+    margin-left: 3em;
+}
+
+
+.toggledDiv ul, .toggledDiv p {
+    margin: 1em 0 0 0;
+}
+
+
+#authWithEmail {
+    padding: 1em;
+}
+
+
+
+
+
+label:has(input[name="controllerIFcheckbox"]) {
+    display: inline-block;
+    width: 8em;
+}
+
+#controllerIFfieldset input[type="text"] {
+    width: 3em;
+    border-color: var(--tabs-border-color);
+}
+
+#setOfButtons {
+    margin-bottom: 1em;
+}
+
+#setOfButtons td {
+    vertical-align: top;
+    padding: .5em;
+    word-break: break-all;
+    overflow-wrap: break-word;
+}
+
+#setOfButtons:not(td:first-child) {
+    font-style: italic;
+    text-align: center;
+}
+
+
+
+
 #tableEditEnabled {
-    background-color: var(--green-for-edit-mode);
-    display:none;
+    display: none;
 }
 
 #tableEditDisabled {
-    display:inline;
+    display: inline;
 }
+
+
+#saveUndoButtons button {
+    color: rgb(0, 107, 0);
+}
+
+#saveUndoButtons button:disabled {
+    color: rgb(127, 172, 127);
+}
+
+
+
+
+
+
+
+
+#commandSetTable {
+    border-collapse: collapse;
+}
+
+#commandSetTable tr th {
+    line-height: 2em;
+    background-color: rgb(235, 235, 235);
+}
+
+
+#commandSetTable textarea {
+    width: 100%;
+    box-sizing: border-box; /* Ensures padding and borders are included in the width */
+    overflow: hidden; /* Prevents scrollbar appearance */
+    resize: none; /* Prevents manual resizing */
+    border: 0;
+    background-color: inherit;
+}
+
+#commandSetTable textarea:disabled {
+    background-color: inherit;
+}
+
+
+#commandSetTable th:last-child, #commandSetTable td:last-child {
+    color: rgb(0, 107, 0);
+    display: none;
+}
+
+#commandSetTable {
+    border-collapse: collapse;
+}
+
 
 #commandSetTable td:last-child {
     font-weight: bold;
@@ -105,37 +215,82 @@ table {
 }
 
 
-#disclaimerDiv table tr td, #disclaimerDiv table tr th, #commandSetTable tr td, #commandSetTable tr th {
+.mcu-cmd {
+    display: block;
+}
+
+    .mcu-cmd:not(:first-child) {
+        margin-top: .5em;
+    }
+
+.pwn {
     border: 1px solid black;
-    margin: 0;
-    padding: 0.5em;
+    display: inline;
+    font-family: monospace;
+    font-size: 18px;
+    font-weight: bold;
+    cursor: default;
+    padding: 0 .5em 0 .5em;
+    margin: 0 .1em 0 .1em;
 }
 
-#disclaimerDiv ul {
-    margin-top:0;
+.cmd-fixed-part {
+    background-color: rgb(216, 216, 216);
+    color: gray;
 }
 
-#disclaimerDiv ul li span {
-    display:inline-block;
-    width:8em;
+.mcu-cmd-legend {
+    color: gray;
+}
+
+    .mcu-cmd-legend > p {
+        border: 1px solid black;
+        display: inline;
+        font-family: monospace;
+        font-size: 18px;
+        font-weight: bold;
+        padding: 0 .225em 0 .225em;
+        margin: 0 .1em 0 .1em;
+        cursor: default;
+    }
+
+.mcu-cmd-legend > *::before {
+    content: "D";
+    color: gray;
+}
+
+.mcu-cmd-hex {
+    font-family: monospace;
+    font-size: 18px;
 }
 
 
-.toggledDiv table {
-    margin-left: 3em;
+
+
+
+#commandSetTable {
+    --column-resize-color: aqua;
 }
 
+#commandSetTable th, #commandSetTable td {
+    position: relative;
+}
+    
 
-.toggledDiv ul, .toggledDiv p {
-    margin: 1em 0 0 0;
+    #commandSetTable tr th.columnWidthResize, #commandSetTable tr td.columnWidthResize {
+        width: 5px;
+        min-width: 5px;
+        max-width: 5px;
+        margin: 0;
+        padding: 0;
+        background-color: var(--column-resize-color);
+        user-select: none;
+    }
+
+
+
+#commandSetTable tr th.columnWidthResize:hover, #commandSetTable tr td.columnWidthResize:hover {
+    --column-resize-color: green;
+    cursor: col-resize;
 }
 
-
-#authWithEmail {
-    padding: 1em;
-}
-
-
-#setOfButtons td {
-    padding: .5em;
-}

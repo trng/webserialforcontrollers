@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Resizable Table Columns</title>
+    <style>
+        table {
+            border-collapse: collapse;
+            width: 100%;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            position: relative;
+        }
+        th {
+            background-color: #f4f4f4;
+            cursor: col-resize;
+        }
+        th .resizer {
+            position: absolute;
+            top: 0;
+            right: 0;
+            width: 5px;
+            height: 100%;
+            cursor: col-resize;
+            user-select: none;
+            background-color: red;
+        }
+    </style>
+</head>
+<body>
+    <table>
+        <thead>
+            <tr>
+                <th>Name</th>
+                <th>Age</th>
+                <th>Occupation</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>John Doe</td>
+                <td>30</td>
+                <td>Software Engineer</td>
+            </tr>
+            <tr>
+                <td>Jane Smith</td>
+                <td>25</td>
+                <td>Designer</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <script>
+        const table = document.querySelector('table');
+        const columns = table.querySelectorAll('th');
+
+        columns.forEach((col, index) => {
+            const resizer = document.createElement('div');
+            resizer.classList.add('resizer');
+            col.appendChild(resizer);
+
+            let startX;
+            let startWidth;
+
+            resizer.addEventListener('mousedown', function(e) {
+                startX = e.pageX;
+                startWidth = col.offsetWidth;
+                document.addEventListener('mousemove', resizeColumn);
+                document.addEventListener('mouseup', stopResize);
+            });
+
+            function resizeColumn(e) {
+                const newWidth = startWidth + (e.pageX - startX);
+                col.style.width = newWidth + 'px';
+                table.style.width = 'auto'; // Optional: adjust the table width to auto
+            }
+
+            function stopResize() {
+                document.removeEventListener('mousemove', resizeColumn);
+                document.removeEventListener('mouseup', stopResize);
+            }
+        });
+    </script>
+</body>
+</html>

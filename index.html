@@ -8,88 +8,30 @@
     <script src="index.js"></script>
     <script src="supabasewrapper.js"></script>
     <link rel="stylesheet" href="index.css">
-    <style>
-        .tab-container {
-            float: left;
-        }
-
-        .tab-button {
-            display: inline-block;
-            padding: 10px;
-            text-align: center;
-            cursor: pointer;
-            background-color: #fff;
-            border-top: 1px solid #ccc;
-            border-right: 1px solid #ccc;
-            border-left: 1px solid #ccc;
-            border-radius: 5px 5px 0 0;
-            position: relative;
-            top: 1px;
-        }
-
-        .tab-content {
-            border: 1px solid #ccc;
-            border-radius: 0 0 5px 5px;
-            background-color: #f0f0f0;
-            padding: 0.5em;
-        }
-
-        .tab-content-item {
-            display: none;
-        }
-
-        input[type="radio"][name="tab"] {
-            display: none;
-        }
-
-
-        input#tab1:checked ~ .tab-content #content1,
-        input#tab2:checked ~ .tab-content #content2,
-        input#tab3:checked ~ .tab-content #content3,
-        input#tab4:checked ~ .tab-content #content4,
-        input#tab5:checked ~ .tab-content #content5 {
-            display: block;
-        }
-
-        input#tab1:checked ~ .tab-button[for="tab1"],
-        input#tab2:checked ~ .tab-button[for="tab2"],
-        input#tab3:checked ~ .tab-button[for="tab3"],
-        input#tab4:checked ~ .tab-button[for="tab4"],
-        input#tab5:checked ~ .tab-button[for="tab5"] {
-            background-color: #f0f0f0;
-            font-weight: bold;
-        }
-
-        label:has(input[name="controllerIF"]) {
-            display: inline-block;
-            width: 8em;
-
-        }
-
-
-
-    </style>
 </head>
 <body>
-    <h3>LED/OLED/TFT display controller commands via Web Serial API (more info: <a href="https://github.com/trng/webserialforcontrollers/">https://github.com/trng/webserialforcontrollers/</a>)</h3>
+    <div id="pageTop">
+        <h4>LED/OLED/TFT display controller commands via Web Serial API (<a href="https://github.com/trng/webserialforcontrollers/">https://github.com/trng/webserialforcontrollers/</a>)</h4>
+    </div>
 
-
-
-    <div class="tab-container">
-        <input type="radio" id="tab1" name="tab">
+    <fieldset class="tab-container" onchange="tabSwitched(event)">
+        <input type="radio" id="tab1" name="tabRadio" checked>
         <label for="tab1" class="tab-button">Disclaimer</label>
 
-        <input type="radio" id="tab2" name="tab" checked>
+        <input type="radio" id="tab2" name="tabRadio">
         <label for="tab2" class="tab-button">Settings</label>
 
-        <input type="radio" id="tab3" name="tab">
+        <input type="radio" id="tab3" name="tabRadio">
         <label for="tab3" class="tab-button">Cloud login</label>
 
-        <input type="radio" id="tab4" name="tab">
-        <label for="tab4" class="tab-button">Help</label>
+        <input type="radio" id="tab4" name="tabRadio">
+        <label for="tab4" class="tab-button">Sequence</label>
 
-        <input type="radio" id="tab5" name="tab">
-        <label for="tab5" class="tab-button">Hide tabs</label>
+        <input type="radio" id="tab5" name="tabRadio">
+        <label for="tab5" class="tab-button">Help</label>
+
+        <input type="radio" id="tab6" name="tabRadio">
+        <label for="tab6" class="tab-button">Hide tabs</label>
 
         <div class="tab-content">
             <div class="tab-content-item" id="content1">
@@ -118,10 +60,14 @@
             </div>
             <div id="content2" class="tab-content-item">
                 <div>Controller interface</div>
-                <label><input type="radio" name="controllerIF" checked>I2C - hardware</label>
-                <label><input type="radio" name="controllerIF">I2C - software</label><br />
-                <label><input type="radio" name="controllerIF">SPI - hardware</label>
-                <label><input type="radio" name="controllerIF">SPI - software</label>
+                <fieldset id="controllerIFfieldset">
+                    <label><input type="radio" name="controllerIFcheckbox" checked>Manual setup</label>
+                    <label><input type="radio" name="controllerIFcheckbox" disabled>I2C - hardware</label>
+                    <label><input type="radio" name="controllerIFcheckbox" disabled>I2C - software</label><input type="text" name="SDA" placeholder="SDA" disabled /> <input type="text"  name="SCL" placeholder="SCL" disabled s/><br /><br />
+                    <label style="visibility:hidden"><input type="radio" name="controllerIFcheckbox" disabled>Manual setup</label>
+                    <label><input type="radio" name="controllerIFcheckbox" disabled>SPI - hardware</label>
+                    <label><input type="radio" name="controllerIFcheckbox" disabled>SPI - software</label>
+                </fieldset>
             </div>
             <div id="content3" class="tab-content-item">
                 <div id="cloudSignUpAndSignIn" class="toggledDiv toggledDivOpened">
@@ -152,17 +98,18 @@
                 </div>
             </div>
             <div id="content4" class="tab-content-item">
+                <p>Command sequence</p>
+            </div>
+            <div id="content5" class="tab-content-item">
                 <div>In command set editing mode:</div>
                 <ul>
                     <li>Fixed bits can be changed with left-mouse-click.</li>
                     <li>Ctrl + left-mouse-click: change bit fixed or variable.</li>
                 </ul>
             </div>
-            <div id="content5" class="tab-content-item">
-
-            </div>
+            <div id="content6" class="tab-content-item"></div>
         </div>
-    </div>
+    </fieldset>
 
     <div style="clear: both;margin-bottom: 1em;"></div>
 
@@ -171,30 +118,34 @@
             <td>
                 <div><button type="button" onclick="connectSerial()" style="width: 15em">Connect to COM port</button></div>
                 <div><span id="portConnectionStatus">Port disconnected</span></div>
-                <div> .</div>
             </td>
             <td>
                 <div><button type="button" onclick="toggleEditMode()" style="width: 15em">Toggle command set editing</button></div>
                 <div>
-                    <span id="tableEditDisabled" style="display: inline;">Edit mode disabled.<br />.</span>
+                    <span id="tableEditDisabled" style="display: inline;">Edit mode disabled.<br /><strong>&nbsp;</strong></span>
                 </div>
                 <div>
                     <span id="tableEditEnabled" style="display: none;"> Edit mode enabled.<br /><strong>Don't forget to save changes</strong></span>
+                </div>
+                <div id="saveUndoButtons">
+                    <button type="button" onclick="saveCommandSetTable()" disabled>Save locally</button> <button type="button" onclick="undoCommandSetTableEdit()" disabled>Undo to last saved</button>
                 </div>
             </td>
             <td>
                 <div><button id="push-record-button">Push controller to cloud</button></div>
                 <div>Cloud disconnected</div>
-                <div> .</div>
+                <div>&nbsp;</div>
+                <div>&nbsp;</div>
             </td>
         </tr>
     </table>
-    
+
 
     <table id="commandSetTable" contenteditable="false">
         <thead>
             <tr>
                 <th>Instruction</th>
+                <th class="columnWidthResize" ></th>
                 <th>Command byte(s)<br><span class="mcu-cmd-legend"><p>7</p><p>6</p><p>5</p><p>4</p><p>3</p><p>2</p><p>1</p><p>0</p></span></th>
                 <th>Hex</th>
                 <th>Description</th>
@@ -204,13 +155,14 @@
         </thead>
         <tbody>
             <tr>
-                <td contenteditable="false" class="">(11) Bias Select</td>
+                <td contenteditable="false" class=""><textarea readonly disabled>(11) Bias Select</textarea></td>
+                <td class="columnWidthResize" ></td>
                 <td>
                     <div class="mcu-cmd" onclick="changeBit(event)"><span class="pwn cmd-fixed-part">1</span><span class="pwn cmd-fixed-part">0</span><span class="pwn cmd-fixed-part">1</span><span class="pwn cmd-fixed-part">0</span><span class="pwn cmd-fixed-part">0</span><span class="pwn cmd-fixed-part">0</span><span class="pwn cmd-variable-part">1</span><span class="pwn cmd-variable-part">1</span></div>
                     <div class="mcu-cmd" onclick="changeBit(event)"><span class="pwn cmd-fixed-part">1</span><span class="pwn cmd-fixed-part">0</span><span class="pwn cmd-fixed-part">0</span><span class="pwn cmd-fixed-part">0</span><span class="pwn cmd-fixed-part">0</span><span class="pwn cmd-variable-part">0</span><span class="pwn cmd-variable-part">0</span><span class="pwn cmd-variable-part">1</span></div>
                 </td>
                 <td class="mcu-cmd-hex"><div>0xA3</div></td>
-                <td contenteditable="false" class="">0=1/9; 1=1/7 (at 1/65 duty)</td>
+                <td contenteditable="false" class=""><textarea readonly disabled>0=1/9; 1=1/7 (at 1/65 duty)</textarea></td>
                 <td><button type="button" class="sendButton" onclick="sendString(this)">Send</button></td>
                 <td>
                     <form>
@@ -223,13 +175,20 @@
             </tr>
 
             <tr>
-                <td contenteditable="false" class="">(19) Set Booster</td>
+                <td contenteditable="false" class=""><textarea readonly disabled>(19) Set Booster</textarea></td>
+                <td class="columnWidthResize" ></td>
                 <td>
                     <div class="mcu-cmd" onclick="changeBit(event)"><span class="pwn cmd-fixed-part">1</span><span class="pwn cmd-fixed-part">1</span><span class="pwn cmd-fixed-part">1</span><span class="pwn cmd-fixed-part">1</span><span class="pwn cmd-fixed-part">1</span><span class="pwn cmd-fixed-part">0</span><span class="pwn cmd-fixed-part">0</span><span class="pwn cmd-fixed-part">0</span></div>
 
                 </td>
                 <td class="mcu-cmd-hex"><div>0xF8</div></td>
-                <td contenteditable="false" class="">Double command!!<br>Set booster level:<br>BL=0: 4X<br>BL=1: 5X</td>
+                <td contenteditable="false" class="">
+                    <textarea readonly disabled>Double command!!
+Set booster level:
+BL=0: 4X
+BL=1: 5X
+                </textarea>
+                </td>
                 <td><button type="button" class="sendButton" onclick="sendString(this)">Send</button></td>
                 <td>
                     <form>
@@ -248,7 +207,7 @@
 
     <script>
         onThisPageLoad();
-        supabasewrapperOnload();
+        supabaseWrapperOnload();
     </script>
 
 

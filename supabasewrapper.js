@@ -10,7 +10,7 @@ console.log('Supabase initialized:', supabaseClient);
  * supabase wrapper. Should be callod on page load
  * 
  */
-function supabasewrapperOnload() {
+function supabaseWrapperOnload() {
     // Email Sign Up
     document.getElementById('email-sign-up-button').addEventListener('click', async () => {
         const email = document.getElementById('sign-up-email').value;
