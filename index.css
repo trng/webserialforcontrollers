@@ -1,15 +1,40 @@
 fieldset {
     border: none;
-    --tabs-bg-color: #fcfcfc;
-    --tabs-border-color: #ccc;
 }
 
 :root {
+    --tabs-bg-color: #fafafa;
+    --tabs-border-color: #ccc;
     --green-for-edit-mode: rgb(211,255,211);
+    --green-for-fixed-bit: rgb(101,233,101);
+    --varbit-edit-bg-color: var(--green-for-edit-mode);
+    --fixbit-edit-bg-color: var(--green-for-fixed-bit);
 }
 
-.editModeBgColorized {
+#pageTop {
+    margin-bottom: .1em;
+    padding: .15em .5em .15em .5em;
+    background-color: #eee;
+}
+
+#pageFooter {
+    margin-top: 2em;
+    padding: .15em .5em .15em .5em;
+    background-color: #eee;
+}
+
+
+
+td.editModeBgColorized:has(textarea), td.editModeBgColorized:has(#saveUndoButtons) {
     background-color: var(--green-for-edit-mode);
+}
+
+td.editModeBgColorized div.mcu-cmd b[data-fov="v"] {
+    background-color: var(--varbit-edit-bg-color);
+}
+
+td.editModeBgColorized div.mcu-cmd b[data-fov="f"] {
+    background-color: var(--fixbit-edit-bg-color);
 }
 
 
@@ -163,6 +188,7 @@ label:has(input[name="controllerIFcheckbox"]) {
 
 #commandSetTable {
     border-collapse: collapse;
+    width: auto;
 }
 
 #commandSetTable tr th {
@@ -179,6 +205,7 @@ label:has(input[name="controllerIFcheckbox"]) {
     border: 0;
     background-color: inherit;
 }
+
 
 #commandSetTable textarea:disabled {
     background-color: inherit;
@@ -219,11 +246,11 @@ label:has(input[name="controllerIFcheckbox"]) {
     display: block;
 }
 
-    .mcu-cmd:not(:first-child) {
-        margin-top: .5em;
-    }
+.mcu-cmd:not(:first-child) {
+    margin-top: .5em;
+}
 
-.pwn {
+.mcu-cmd b {
     border: 1px solid black;
     display: inline;
     font-family: monospace;
@@ -234,7 +261,7 @@ label:has(input[name="controllerIFcheckbox"]) {
     margin: 0 .1em 0 .1em;
 }
 
-.cmd-fixed-part {
+.mcu-cmd b[data-fov="f"] { /* fixed bit */
     background-color: rgb(216, 216, 216);
     color: gray;
 }
@@ -243,16 +270,14 @@ label:has(input[name="controllerIFcheckbox"]) {
     color: gray;
 }
 
-    .mcu-cmd-legend > p {
-        border: 1px solid black;
-        display: inline;
-        font-family: monospace;
-        font-size: 18px;
-        font-weight: bold;
-        padding: 0 .225em 0 .225em;
-        margin: 0 .1em 0 .1em;
-        cursor: default;
-    }
+.mcu-cmd-legend > b {
+    border: 1px solid black;
+    font-family: monospace;
+    font-size: 18px;
+    padding: 0 .225em 0 .225em;
+    margin: 0 .1em 0 .1em;
+    cursor: default;
+}
 
 .mcu-cmd-legend > *::before {
     content: "D";
@@ -268,29 +293,79 @@ label:has(input[name="controllerIFcheckbox"]) {
 
 
 
-#commandSetTable {
-    --column-resize-color: aqua;
-}
 
-#commandSetTable th, #commandSetTable td {
+table tr th, table tr td {
     position: relative;
 }
-    
 
-    #commandSetTable tr th.columnWidthResize, #commandSetTable tr td.columnWidthResize {
-        width: 5px;
-        min-width: 5px;
-        max-width: 5px;
-        margin: 0;
-        padding: 0;
-        background-color: var(--column-resize-color);
-        user-select: none;
+div.resizer { /*th .resizer, td */
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 2px;
+    min-width: 2px;
+    max-width: 2px;
+    margin: 0;
+    padding: 0;
+    height: 100%;
+    cursor: col-resize;
+    user-select: none;
+    display: none;
+    background-color: #FAA;
+    border-left: 1px solid black;
+}
+
+
+
+#controllerSelector {
+    margin: 1em 0 1em 0;
+    width: 100%;
+}
+
+#selectedControllerName {
+    width: 90%;
+    padding: .25em .25em .25em .25em;
+    margin: 2px;
+    font-family: inherit;
+    font-size: inherit;
+    background-color: var(--tabs-bg-color);
+}
+
+
+
+
+.disabledTable {
+    opacity: 25%;
+    pointer-events: none;
+    user-select: none;
+}
+
+.autocomplete {
+    position: relative;
+    display: inline-block;
+    width: 99%;
+    padding: .25em;
+}
+
+.autocomplete-items {
+    position: absolute;
+    border: 1px solid gray;
+    border-top: none;
+    z-index: 99;
+    top: 100%;
+    left: 0;
+    right: 0;
+}
+
+    .autocomplete-items div {
+        padding: 10px;
+        cursor: pointer;
+        background-color: var(--green-for-edit-mode);
     }
 
+        .autocomplete-items div:hover {
+            background-color: var(--fixbit-edit-bg-color);
+        }
 
 
-#commandSetTable tr th.columnWidthResize:hover, #commandSetTable tr td.columnWidthResize:hover {
-    --column-resize-color: green;
-    cursor: col-resize;
-}
 
