@@ -42,6 +42,10 @@ function onThisPageLoad() {
     toggleEditMode(false);
     fillHex();
 
+    /*const ijns = document.querySelector('.tab-container .tab-content').querySelectorAll('.tab-content-item');
+    ijns.forEach(ijn => ijn.style.width = '900px' );
+    */
+
     // Adjust the height of the textarea based on its content
     const commands_textareas = document.querySelectorAll('#commandSetTable textarea');
     commands_textareas.forEach(cmd_txtA => {
@@ -89,9 +93,11 @@ function resizable_cells_init(resizable_cells) {
              * @param {any} e
              */
             function resizeColumn(e) {
+                const column_number = Array.from(resizable_td.parentNode.children).indexOf(resizable_td)+1;
+                const tds_rs = resizable_td.closest('table').querySelectorAll(`tr th:nth-of-type(${column_number}), tr td:nth-of-type(${column_number})`);
                 try {
                     const newWidth = startWidth + (e.pageX - startX);
-                    resizable_td.style.width = newWidth + 'px';
+                    tds_rs.forEach((ttt) => { ttt.style.width = newWidth + 'px'; });
                 } catch (Error) {
                     console.error("Error during column resize:", error);
                     stopResize(); // Fallback to stop resizing if error occurs

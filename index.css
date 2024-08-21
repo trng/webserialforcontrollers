@@ -39,7 +39,7 @@ td.editModeBgColorized div.mcu-cmd b[data-fov="f"] {
 
 
 .tab-container {
-    float: left;
+    width: 100%;
 }
 
 .tab-button {
@@ -67,9 +67,11 @@ input[name="tabRadio"]:not(:checked) + label {
     border-radius: 0 0 5px 5px;
     background-color: var(--tabs-bg-color);
     padding: 0.5em;
+    width:100%;
 }
 
 .tab-content-item {
+    width: 100%;
     display: none;
 }
 
@@ -99,6 +101,10 @@ input#tab6:checked ~ .tab-button[for="tab6"] {
 }
 
 
+#disclaimerDiv table {
+    font-size: .935em;
+}
+
 #disclaimerDiv table tr td, #disclaimerDiv table tr th, #commandSetTable tr td, #commandSetTable tr th {
     border: 1px solid black;
     margin: 0;
@@ -115,15 +121,9 @@ input#tab6:checked ~ .tab-button[for="tab6"] {
 }
 
 
-.toggledDiv table {
-    margin-left: 3em;
+#cloudSignUpAndSignIn input[type="email"], #cloudSignUpAndSignIn input[type="password"]  {
+    width: 10em;
 }
-
-
-.toggledDiv ul, .toggledDiv p {
-    margin: 1em 0 0 0;
-}
-
 
 #authWithEmail {
     padding: 1em;
@@ -147,17 +147,17 @@ label:has(input[name="controllerIFcheckbox"]) {
     margin-bottom: 1em;
 }
 
-#setOfButtons td {
-    vertical-align: top;
-    padding: .5em;
-    word-break: break-all;
-    overflow-wrap: break-word;
-}
+    #setOfButtons td {
+        vertical-align: top;
+        padding: .5em;
+        word-break: break-all;
+        overflow-wrap: break-word;
+    }
 
-#setOfButtons:not(td:first-child) {
-    font-style: italic;
-    text-align: center;
-}
+    #setOfButtons:not(td:first-child) {
+        font-style: italic;
+        text-align: center;
+    }
 
 
 
@@ -191,98 +191,101 @@ label:has(input[name="controllerIFcheckbox"]) {
     width: auto;
 }
 
-#commandSetTable tr th {
-    line-height: 2em;
-    background-color: rgb(235, 235, 235);
-}
+    #commandSetTable tr th {
+        line-height: 2em;
+        background-color: rgb(235, 235, 235);
+        
+    }
 
 
-#commandSetTable textarea {
-    width: 100%;
-    box-sizing: border-box; /* Ensures padding and borders are included in the width */
-    overflow: hidden; /* Prevents scrollbar appearance */
-    resize: none; /* Prevents manual resizing */
-    border: 0;
-    background-color: inherit;
-}
+    #commandSetTable textarea {
+        width: 100%;
+        box-sizing: border-box; /* Ensures padding and borders are included in the width */
+        overflow: hidden; /* Prevents scrollbar appearance */
+        resize: none; /* Prevents manual resizing */
+        border: 0;
+        background-color: inherit;
+    }
 
 
-#commandSetTable textarea:disabled {
-    background-color: inherit;
-}
+    #commandSetTable textarea:disabled {
+        background-color: inherit;
+    }
 
 
-#commandSetTable th:last-child, #commandSetTable td:last-child {
-    color: rgb(0, 107, 0);
-    display: none;
-}
-
-#commandSetTable {
-    border-collapse: collapse;
-}
+    #commandSetTable th:last-child, #commandSetTable td:last-child {
+        color: rgb(0, 107, 0);
+        display: none;
+    }
 
 
-#commandSetTable td:last-child {
-    font-weight: bold;
-    font-size: 85%;
-    font-family: monospace;
-}
+    #commandSetTable td:last-child {
+        font-weight: bold;
+        font-size: 85%;
+        font-family: monospace;
+    }
 
-#commandSetTable td:last-child button {
-    width: 3em;
-    color: inherit;
-    font-size: inherit;
-    font-family: inherit;
-    font-weight: inherit;
-}
+    #commandSetTable td:last-child button {
+        width: 3em;
+        color: inherit;
+        font-size: inherit;
+        font-family: inherit;
+        font-weight: inherit;
+    }
 
-#commandSetTable td:last-child input[type="radio"] {
-    position:relative;
-    top:0.25em;
-}
+    #commandSetTable td:last-child input[type="radio"] {
+        position:relative;
+        top:0.25em;
+    }
+
+
 
 
 .mcu-cmd {
     display: block;
 }
 
-.mcu-cmd:not(:first-child) {
-    margin-top: .5em;
-}
+    .mcu-cmd:not(:first-child) {
+        margin-top: .5em;
+    }
 
-.mcu-cmd b {
-    border: 1px solid black;
-    display: inline;
-    font-family: monospace;
-    font-size: 18px;
-    font-weight: bold;
-    cursor: default;
-    padding: 0 .5em 0 .5em;
-    margin: 0 .1em 0 .1em;
-}
+    .mcu-cmd b {
+        border: 1px solid black;
+        display: inline;
+        font-family: monospace;
+        font-size: 18px;
+        font-weight: bold;
+        cursor: default;
+        padding: 0 .5em 0 .5em;
+        margin: 0 .1em 0 .1em;
+    }
 
-.mcu-cmd b[data-fov="f"] { /* fixed bit */
-    background-color: rgb(216, 216, 216);
-    color: gray;
-}
+    .mcu-cmd b[data-fov="f"] { /* fixed bit */
+        background-color: rgb(216, 216, 216);
+        color: gray;
+    }
+
+
 
 .mcu-cmd-legend {
     color: gray;
 }
 
-.mcu-cmd-legend > b {
-    border: 1px solid black;
-    font-family: monospace;
-    font-size: 18px;
-    padding: 0 .225em 0 .225em;
-    margin: 0 .1em 0 .1em;
-    cursor: default;
-}
+    .mcu-cmd-legend > b {
+        border: 1px solid black;
+        font-family: monospace;
+        font-size: 18px;
+        padding: 0 .225em 0 .225em;
+        margin: 0 .1em 0 .1em;
+        cursor: default;
+    }
 
-.mcu-cmd-legend > *::before {
-    content: "D";
-    color: gray;
-}
+    .mcu-cmd-legend > *::before {
+        content: "D";
+        color: gray;
+    }
+
+
 
 .mcu-cmd-hex {
     font-family: monospace;

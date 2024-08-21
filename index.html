@@ -13,155 +13,155 @@
     <div id="pageTop">
         <h4>LED/OLED/TFT display controller commands via Web Serial API (<a href="https://github.com/trng/webserialforcontrollers/">https://github.com/trng/webserialforcontrollers/</a>)</h4>
     </div>
-
-    <fieldset class="tab-container" onchange="tabSwitched(event)">
-        <input type="radio" id="tab1" name="tabRadio" checked>
-        <label for="tab1" class="tab-button">Disclaimer</label>
-
-        <input type="radio" id="tab2" name="tabRadio">
-        <label for="tab2" class="tab-button">Settings</label>
-
-        <input type="radio" id="tab3" name="tabRadio">
-        <label for="tab3" class="tab-button">Cloud login</label>
-
-        <input type="radio" id="tab4" name="tabRadio">
-        <label for="tab4" class="tab-button">Sequence</label>
-
-        <input type="radio" id="tab5" name="tabRadio">
-        <label for="tab5" class="tab-button">Help</label>
-
-        <input type="radio" id="tab6" name="tabRadio">
-        <label for="tab6" class="tab-button">Hide tabs</label>
-
-        <div class="tab-content">
-            <div class="tab-content-item" id="content1">
-                <div id="disclaimerDiv">
-                    <table id="disclaimerTable" class="disclaimerVisible">
-                        <tr>
-                            <td>
-                                <div>As of mid-2024, only Chrome, Opera and Edge support Web Serial API:</div>
-                                <ul>
-                                    <li>edge://flags/#enable-experimental-web-platform-features</li>
-                                    <li>chrome://flags/#enable-experimental-web-platform-features</li>
-                                    <li>opera://flags Experimental Web Platform features</li>
-                                </ul>
-                            </td>
-                            <td>
-                                <div>URI schemes supported:</div>
-                                <ul>
-                                    <li><span>for remote sites</span> : https://</li>
-                                    <li><span>for localhost</span> : https://, http://</li>
-                                    <li><span>for local filesystem</span> : file://</li>
-                                </ul>
-                            </td>
-                        </tr>
-                    </table>
-                </div>
-            </div>
-            <div id="content2" class="tab-content-item">
-                <div>Controller interface</div>
-                <fieldset id="controllerIFfieldset">
-                    <label><input type="radio" name="controllerIFcheckbox" checked>Manual setup</label>
-                    <label><input type="radio" name="controllerIFcheckbox" disabled>I2C - hardware</label>
-                    <label><input type="radio" name="controllerIFcheckbox" disabled>I2C - software</label><input type="text" name="SDA" placeholder="SDA" disabled /> <input type="text" name="SCL" placeholder="SCL" disabled s /><br /><br />
-                    <label style="visibility:hidden"><input type="radio" name="controllerIFcheckbox" disabled>Manual setup</label>
-                    <label><input type="radio" name="controllerIFcheckbox" disabled>SPI - hardware</label>
-                    <label><input type="radio" name="controllerIFcheckbox" disabled>SPI - software</label>
-                </fieldset>
-            </div>
-            <div id="content3" class="tab-content-item">
-                <div id="cloudSignUpAndSignIn" class="toggledDiv toggledDivOpened">
-                    <p onclick="toggleDiv(event)"><strong>Save to WebSerialForControllers Cloud</strong></p>
-                    <table>
-                        <tr>
-                            <td>With email:</td>
-                            <td>
-                                Sign Up <input type="email" id="sign-up-email" placeholder="Email" /> <input type="password" id="sign-up-password" placeholder="Password" /> <button id="email-sign-up-button">Sign Up</button><br>
-                                Sign In <input type="email" id="sign-in-email" placeholder="Email" /> <input type="password" id="sign-in-password" placeholder="Password" /> <button id="email-sign-in-button">Sign In</button>
-                            </td>
-                        </tr>
-                        <tr><td>With github:</td><td><button id="github-sign-in-button">Sign In</button></td></tr>
-                        <tr><td colspan="2"><button id="supabase-logout-button">Logout from Cloud</button></td></tr>
-                    </table>
-
-                    <script>
-                        document.getElementById('supabase-logout-button').addEventListener('click', async () => {
-                            const { error } = await supabaseClient.auth.signOut();
-                            if (error)
-                                console.error('Error logging out:', error.message);
-                            else
-                                console.log('User logged out successfully');
-                            checkSession();
-                        });
-                    </script>
-
-                </div>
-            </div>
-            <div id="content4" class="tab-content-item">
-                <p>Command sequence</p>
-            </div>
-            <div id="content5" class="tab-content-item">
-                <div>In command set editing mode:</div>
-                <ul>
-                    <li>Fixed bits can be changed with left-mouse-click.</li>
-                    <li>Ctrl + left-mouse-click: change bit type: fixed or variable.</li>
-                </ul>
-            </div>
-            <div id="content6" class="tab-content-item"></div>
-        </div>
-    </fieldset>
-
-    <div style="clear: both;margin-bottom: 1em;"></div>
-
-    <table id="setOfButtons">
-        <tr>
-            <td>
-                <div><button type="button" onclick="connectSerial()" style="width: 15em">Connect to COM port</button></div>
-                <div><span id="portConnectionStatus">Port disconnected</span></div>
-            </td>
-            <td>
-                <div><button type="button" onclick="toggleEditMode()" style="width: 15em">Toggle command set editing</button></div>
-                <div>
-                    <span id="tableEditDisabled" style="display: inline;">Edit mode disabled.<br /><strong>&nbsp;</strong></span>
-                </div>
-                <div>
-                    <span id="tableEditEnabled" style="display: none;"> Edit mode enabled.<br /><strong>Don't forget to save changes</strong></span>
-                </div>
-                <div id="saveUndoButtons">
-                    <button type="button" onclick="saveCommandSetTable()" disabled>Save locally</button> <button type="button" onclick="undoCommandSetTableEdit()" disabled>Undo to last saved</button>
-                </div>
-            </td>
-            <td>
-                <div><button id="push-record-button">Push controller to cloud</button></div>
-                <div>Cloud disconnected</div>
-                <div>&nbsp;</div>
-                <div>&nbsp;</div>
-            </td>
-        </tr>
-    </table>
-
-    <template id="empty-row-template">
-        <tr>
-            <td><textarea readonly disabled oninput="this.style.height = 'auto'; this.style.height = this.scrollHeight + 'px';"></textarea></td>
-            <!-- <td><div class="mcu-cmd" onclick="changeBit(event)"><span class="pwn cmd-fixed-part">0</span><span class="pwn cmd-fixed-part">0</span><span class="pwn cmd-fixed-part">0</span><span class="pwn cmd-fixed-part">0</span><span class="pwn cmd-fixed-part">0</span><span class="pwn cmd-fixed-part">0</span><span class="pwn cmd-variable-part">0</span><span class="pwn cmd-variable-part">0</span></div></td> -->
-            <td><div class="mcu-cmd" onclick="changeBit(event)"><b data-fov="f">0</b><b data-fov="f">0</b><b data-fov="f">0</b><b data-fov="f">0</b><b data-fov="f">0</b><b data-fov="v">0</b><b data-fov="v">0</b><b data-fov="v">0</b></div></td>
-            <td class="mcu-cmd-hex"></td>
-            <td class=""><textarea readonly disabled oninput="this.style.height = 'auto'; this.style.height = this.scrollHeight + 'px';"></textarea></td>
-            <td><button type="button" class="sendButton" onclick="sendString(this)">Send</button></td>
-            <td>
-                <form onchange="commandLengthChanged(event)">
-                    <button type="button" onclick="delRow(event)" title="Delete row">Del</button>
-                    <label title="1-byte command"><input type="radio" name="commandLength" value="1" checked>1 byte</label><br>
-                    <button type="button" onclick="dupRow(event)" title="Insert row">Dup</button>
-                    <label title="2-bytes command"><input type="radio" name="commandLength" value="2">2 bytes</label>
-                </form>
-            </td>
-        </tr>
-    </template>
-
-
-
     <div style="float: left;">
+        <fieldset class="tab-container" onchange="tabSwitched(event)">
+            <input type="radio" id="tab1" name="tabRadio" checked>
+            <label for="tab1" class="tab-button">Disclaimer</label>
+
+            <input type="radio" id="tab2" name="tabRadio">
+            <label for="tab2" class="tab-button">Settings</label>
+
+            <input type="radio" id="tab3" name="tabRadio">
+            <label for="tab3" class="tab-button">Cloud login</label>
+
+            <input type="radio" id="tab4" name="tabRadio">
+            <label for="tab4" class="tab-button">Sequence</label>
+
+            <input type="radio" id="tab5" name="tabRadio">
+            <label for="tab5" class="tab-button">Help</label>
+
+            <input type="radio" id="tab6" name="tabRadio">
+            <label for="tab6" class="tab-button">Hide tabs</label>
+
+            <div class="tab-content">
+                <div class="tab-content-item" id="content1">
+                    <div id="disclaimerDiv">
+                        <table>
+                            <tr>
+                                <td>
+                                    <div>As of mid-2024, only Chrome, Opera and Edge support Web Serial API:</div>
+                                    <ul>
+                                        <li>edge://flags/#enable-experimental-web-platform-features</li>
+                                        <li>chrome://flags/#enable-experimental-web-platform-features</li>
+                                        <li>opera://flags Experimental Web Platform features</li>
+                                    </ul>
+                                </td>
+                                <td>
+                                    <div>URI schemes supported:</div>
+                                    <ul>
+                                        <li><span>for remote sites</span> : https://</li>
+                                        <li><span>for localhost</span> : https://, http://</li>
+                                        <li><span>for local filesystem</span> : file://</li>
+                                    </ul>
+                                </td>
+                            </tr>
+                        </table>
+                    </div>
+                </div>
+                <div id="content2" class="tab-content-item">
+                    <div>Controller interface</div>
+                    <fieldset id="controllerIFfieldset">
+                        <label><input type="radio" name="controllerIFcheckbox" checked>Manual setup</label>
+                        <label><input type="radio" name="controllerIFcheckbox" disabled>I2C - hardware</label>
+                        <label><input type="radio" name="controllerIFcheckbox" disabled>I2C - software</label><input type="text" name="SDA" placeholder="SDA" disabled /> <input type="text" name="SCL" placeholder="SCL" disabled s /><br /><br />
+                        <label style="visibility:hidden"><input type="radio" name="controllerIFcheckbox" disabled>Manual setup</label>
+                        <label><input type="radio" name="controllerIFcheckbox" disabled>SPI - hardware</label>
+                        <label><input type="radio" name="controllerIFcheckbox" disabled>SPI - software</label>
+                    </fieldset>
+                </div>
+                <div id="content3" class="tab-content-item">
+                    <div id="cloudSignUpAndSignIn">
+                        <p><strong>Save to WebSerialForControllers Cloud</strong></p>
+                        <table>
+                            <tr>
+                                <td>With email:</td>
+                                <td>
+                                    Sign Up <input type="email" id="sign-up-email" placeholder="Email" /> <input type="password" id="sign-up-password" placeholder="Password" /> <button id="email-sign-up-button">Sign Up</button><br>
+                                    Sign In <input type="email" id="sign-in-email" placeholder="Email" /> <input type="password" id="sign-in-password" placeholder="Password" /> <button id="email-sign-in-button">Sign In</button>
+                                </td>
+                            </tr>
+                            <tr><td>With github:</td><td><button id="github-sign-in-button">Sign In</button></td></tr>
+                            <tr><td colspan="2"><button id="supabase-logout-button">Logout from Cloud</button></td></tr>
+                        </table>
+
+                        <script>
+                            document.getElementById('supabase-logout-button').addEventListener('click', async () => {
+                                const { error } = await supabaseClient.auth.signOut();
+                                if (error)
+                                    console.error('Error logging out:', error.message);
+                                else
+                                    console.log('User logged out successfully');
+                                checkSession();
+                            });
+                        </script>
+
+                    </div>
+                </div>
+                <div id="content4" class="tab-content-item">
+                    <p>Command sequence</p>
+                </div>
+                <div id="content5" class="tab-content-item">
+                    <div>In command set editing mode:</div>
+                    <ul>
+                        <li>Fixed bits can be changed with left-mouse-click.</li>
+                        <li>Ctrl + left-mouse-click: change bit type: fixed or variable.</li>
+                    </ul>
+                </div>
+                <div id="content6" class="tab-content-item"></div>
+            </div>
+        </fieldset>
+
+        <div style="clear: both;margin-bottom: 1em;"></div>
+
+        <table id="setOfButtons">
+            <tr>
+                <td>
+                    <div><button type="button" onclick="connectSerial()" style="width: 15em">Connect to COM port</button></div>
+                    <div><span id="portConnectionStatus">Port disconnected</span></div>
+                </td>
+                <td>
+                    <div><button type="button" onclick="toggleEditMode()" style="width: 15em">Toggle command set editing</button></div>
+                    <div>
+                        <span id="tableEditDisabled" style="display: inline;">Edit mode disabled.<br /><strong>&nbsp;</strong></span>
+                    </div>
+                    <div>
+                        <span id="tableEditEnabled" style="display: none;"> Edit mode enabled.<br /><strong>Don't forget to save changes</strong></span>
+                    </div>
+                    <div id="saveUndoButtons">
+                        <button type="button" onclick="saveCommandSetTable()" disabled>Save locally</button> <button type="button" onclick="undoCommandSetTableEdit()" disabled>Undo to last saved</button>
+                    </div>
+                </td>
+                <td>
+                    <div><button id="push-record-button">Push controller to cloud</button></div>
+                    <div>Cloud disconnected</div>
+                    <div>&nbsp;</div>
+                    <div>&nbsp;</div>
+                </td>
+            </tr>
+        </table>
+
+        <template id="empty-row-template">
+            <tr>
+                <td><textarea readonly disabled oninput="this.style.height = 'auto'; this.style.height = this.scrollHeight + 'px';"></textarea></td>
+                <!-- <td><div class="mcu-cmd" onclick="changeBit(event)"><span class="pwn cmd-fixed-part">0</span><span class="pwn cmd-fixed-part">0</span><span class="pwn cmd-fixed-part">0</span><span class="pwn cmd-fixed-part">0</span><span class="pwn cmd-fixed-part">0</span><span class="pwn cmd-fixed-part">0</span><span class="pwn cmd-variable-part">0</span><span class="pwn cmd-variable-part">0</span></div></td> -->
+                <td><div class="mcu-cmd" onclick="changeBit(event)"><b data-fov="f">0</b><b data-fov="f">0</b><b data-fov="f">0</b><b data-fov="f">0</b><b data-fov="f">0</b><b data-fov="v">0</b><b data-fov="v">0</b><b data-fov="v">0</b></div></td>
+                <td class="mcu-cmd-hex"></td>
+                <td class=""><textarea readonly disabled oninput="this.style.height = 'auto'; this.style.height = this.scrollHeight + 'px';"></textarea></td>
+                <td><button type="button" class="sendButton" onclick="sendString(this)">Send</button></td>
+                <td>
+                    <form onchange="commandLengthChanged(event)">
+                        <button type="button" onclick="delRow(event)" title="Delete row">Del</button>
+                        <label title="1-byte command"><input type="radio" name="commandLength" value="1" checked>1 byte</label><br>
+                        <button type="button" onclick="dupRow(event)" title="Insert row">Dup</button>
+                        <label title="2-bytes command"><input type="radio" name="commandLength" value="2">2 bytes</label>
+                    </form>
+                </td>
+            </tr>
+        </template>
+
+
+
+
         <div id="controllerSelector">
             <div class="autocomplete">
                 <input id="selectedControllerName" type="text" name="selectedControllerName" placeholder="Controller name (space - show all locally saved). Start typing...">

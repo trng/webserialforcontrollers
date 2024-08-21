@@ -56,14 +56,25 @@ function supabaseWrapperOnload() {
     // Define an async function to interact with the database
     document.getElementById('push-record-button').addEventListener('click', async () => {
         // Call checkSession periodically or after sign-in
-        checkSession();
+        const cs_result = await new Promise((cs_resolve) => {
+            cs_resolve(checkSession());
+        });
+
+        if (!cs_result) {
+            document.getElementById('tab3').checked = true;
+            console.log('Please authenticate first');
+            return;
+        }
+            
 
         // Insert a new message into the messages table
-        const command_set_tbody = document.getElementById('commandSetTable').querySelector('tbody').innerHTML;
+        saveCommandSetTable();
+        const controller_name_for_upload = document.getElementById("selectedControllerName").value;
+        const command_set_for_upload = localStorage.getItem(COMMAND_SET_ROW_PREFIX + controller_name_for_upload);
         const { data, error } = await supabaseClient
             .from('lcdoledtftcontrollers')
             .insert(
-                [{ controllername: 'SH1107', tabletr: command_set_tbody }]
+                [{ controller_name: controller_name_for_upload, command_set: command_set_for_upload }]
             );
 
         if (error)
@@ -85,18 +96,21 @@ function supabaseWrapperOnload() {
 
 /**
  * 
- * Check is user authenticated
- * 
+ * Check if the user is authenticated
+ * @returns {Boolean}
  */
 async function checkSession() {
     const {data: {session}, error } = await supabaseClient.auth.getSession();
 
     if (error) {
         console.error('Error fetching session:', error.message);
+        return false;
     } else if (!session) {
         console.log('User not authenticated');
+        return false;
     } else {
         console.log('User authenticated:', session.user);
+        return true;
     }
 }
 
