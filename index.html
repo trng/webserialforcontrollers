@@ -142,11 +142,11 @@
 
     <template id="empty-row-template">
         <tr>
-            <td><textarea readonly disabled></textarea></td>
+            <td><textarea readonly disabled oninput="this.style.height = 'auto'; this.style.height = this.scrollHeight + 'px';"></textarea></td>
             <!-- <td><div class="mcu-cmd" onclick="changeBit(event)"><span class="pwn cmd-fixed-part">0</span><span class="pwn cmd-fixed-part">0</span><span class="pwn cmd-fixed-part">0</span><span class="pwn cmd-fixed-part">0</span><span class="pwn cmd-fixed-part">0</span><span class="pwn cmd-fixed-part">0</span><span class="pwn cmd-variable-part">0</span><span class="pwn cmd-variable-part">0</span></div></td> -->
             <td><div class="mcu-cmd" onclick="changeBit(event)"><b data-fov="f">0</b><b data-fov="f">0</b><b data-fov="f">0</b><b data-fov="f">0</b><b data-fov="f">0</b><b data-fov="v">0</b><b data-fov="v">0</b><b data-fov="v">0</b></div></td>
             <td class="mcu-cmd-hex"></td>
-            <td class=""><textarea readonly disabled></textarea></td>
+            <td class=""><textarea readonly disabled oninput="this.style.height = 'auto'; this.style.height = this.scrollHeight + 'px';"></textarea></td>
             <td><button type="button" class="sendButton" onclick="sendString(this)">Send</button></td>
             <td>
                 <form onchange="commandLengthChanged(event)">
@@ -164,8 +164,8 @@
     <div style="float: left;">
         <div id="controllerSelector">
             <div class="autocomplete">
-                <input id="selectedControllerName" type="text" name="selectedControllerName" placeholder="Controller name (space - show all locally saved). Start typing..." onfocus="console.log(this.value)">
-                <button onclick="deleteLocalSavedController()">Del</button>
+                <input id="selectedControllerName" type="text" name="selectedControllerName" placeholder="Controller name (space - show all locally saved). Start typing...">
+                <button onclick="deleteLocallySavedController()">Del</button>
             </div>
         </div>
 

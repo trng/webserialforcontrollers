@@ -27,6 +27,8 @@ function localStorageGetKeysAll(keyname_prefix) {
 
 
 
+
+
 /**
  * 
  * Initialization on page load 
@@ -259,6 +261,7 @@ function toggleEditMode(enable_edit_mode) {
     makeColumnEditable('commandSetTable', 0, enable_edit_mode);
     makeColumnEditable('commandSetTable', 1, enable_edit_mode);
     makeColumnEditable('commandSetTable', 3, enable_edit_mode);
+    resizableTableInit();
     Array.from(document.styleSheets).forEach(sheet => {
         for (let i = 0; i < sheet.cssRules.length; i++) {
             const rule = sheet.cssRules[i];
@@ -341,7 +344,9 @@ function undoCommandSetTableEdit() {
                 });
             });
             row_just_added.querySelector('tr td:nth-of-type(4) textarea').value = current_row_saved[2];
-            
+            // Manually trigger the input event
+            row_just_added.querySelector('tr td:nth-of-type(1) textarea').dispatchEvent(new Event('input', { bubbles: true }));
+            row_just_added.querySelector('tr td:nth-of-type(4) textarea').dispatchEvent(new Event('input', { bubbles: true }));
         });
         let is_edit_mode = document.getElementById('tableEditEnabled').style.display != 'none';
         if (is_edit_mode) {
@@ -439,8 +444,9 @@ async function sendString(clickedElement) {
 
 function autocomplete(inp, arr) {
     var currentFocus;
-
+    let selected_controller_name = '';
     inp.addEventListener("input", function () {
+        arr = Array.from(localStorageGetKeysAll(COMMAND_SET_ROW_PREFIX));
         var a, b, i, val = this.value;
         this.value = this.value.trimStart();
         closeAllLists();
@@ -451,12 +457,18 @@ function autocomplete(inp, arr) {
         a.setAttribute("class", "autocomplete-items");
         this.parentNode.appendChild(a);
         for (i = 0; i < arr.length; i++) {
-            if ((arr[i].toLowerCase().includes(val.toLowerCase())) || val == ' ' ) {
+            //if ((arr[i].toLowerCase().includes(val.toLowerCase().trim())) || val == ' ' ) {
+            let iof = arr[i].toLowerCase().indexOf(val.toLowerCase().trim());
+            if (iof >= 0 || val == ' ') {
                 b = document.createElement("DIV");
-                b.innerHTML = arr[i].replace(new RegExp(val, "i"), "<strong>$&</strong>");
+                // b.innerHTML = arr[i].replace(new RegExp(val.trim(), "i"), "<strong>$&</strong>");
+                const iofe = iof + val.trim().length;
+                const ipp = arr[i].slice(iof, iofe).replace(new RegExp('[\\+\\-\\_ ]', 'g'), '<em style="text-shadow: 1px 1px;">$&</em>');
+                b.innerHTML = `${arr[i].slice(0, iof)}<strong>${ipp}</strong>${arr[i].slice(iofe)}`;
                 b.innerHTML += "<input type='hidden' value='" + arr[i] + "'>";
                 b.addEventListener("click", function () {
-                    inp.value = this.getElementsByTagName("input")[0].value;
+                    inp.value = this.getElementsByTagName("input")[0].value.trim();
+                    selected_controller_name = inp.value;
                     undoCommandSetTableEdit();
                     closeAllLists();
                     
@@ -467,14 +479,10 @@ function autocomplete(inp, arr) {
         }
         if (a.querySelectorAll('div').length == 0) {
             // no suitable controller name found
-            //const controller_name_actions = ['NEW BLANK CONTROLLER', 'NEW CLONED CONTROLLER', 'RENAME CURRENT CONTROLLER'];
             const controller_name_actions = new Map([
-                ['NEW BLANK CONTROLLER', function (table_tbody) {
-                    table_tbody.innerHTML = '';
-                    table_tbody.appendChild(document.importNode(document.getElementById('empty-row-template').content, true));
-                }],
-                ['NEW CLONED CONTROLLER', (table_tbody) => { console.log("cloned, but not saved"); }],
-                ['RENAME CURRENT CONTROLLER', (table_tbody) => { console.log("delete old?"); }]
+                ['NEW BLANK CONTROLLER', (ttb) => { ttb.innerHTML = ''; ttb.appendChild(document.importNode(document.getElementById('empty-row-template').content, true)); }],
+                ['NEW CLONED CONTROLLER', () => { saveCommandSetTable() }],
+                ['RENAME CURRENT CONTROLLER', () => { if (confirm("Really rename?")) { saveCommandSetTable(); localStorage.removeItem(COMMAND_SET_ROW_PREFIX + selected_controller_name); } }]
             ]);
 
             for (const single_action of controller_name_actions.keys()) { // controller_name_actions.forEach(single_action => 
@@ -483,7 +491,7 @@ function autocomplete(inp, arr) {
                 b.innerHTML = `${val} &nbsp;&nbsp;&nbsp;<em>${single_action}</em>`;
                 b.innerHTML += `<input type="hidden" value="${val}">`;
                 b.addEventListener("click", function () {
-                    inp.value = this.getElementsByTagName("input")[0].value;
+                    inp.value = this.getElementsByTagName("input")[0].value.trim();
                     controller_name_actions.get(this.dataset.controllerNameAction)( document.querySelector('#commandSetTable tbody') );
                     closeAllLists();
                 });
@@ -530,6 +538,8 @@ function autocomplete(inp, arr) {
             if (elmnt != x[i] && elmnt != inp) {
                 x[i].parentNode.removeChild(x[i]);
                 document.getElementById('commandSetTable').classList.remove('disabledTable');
+                if (arguments.length > 0)
+                    inp.value = selected_controller_name;
             }
         }
     }
@@ -540,9 +550,11 @@ function autocomplete(inp, arr) {
 }
 
 
-function deleteLocalSavedController() {
-    const controller_name = document.getElementById('selectedControllerName').value;
-    let userResponse = confirm("Do you want to proceed?");
-    if (userResponse)
-        localStorage.removeItem(COMMAND_SET_ROW_PREFIX + controller_name);
+function deleteLocallySavedController() {
+    const controller_name_input = document.getElementById('selectedControllerName');
+    if (confirm("Do you want to proceed?")) {
+        localStorage.removeItem(COMMAND_SET_ROW_PREFIX + controller_name_input.value);
+        controller_name_input.value = '';
+        document.querySelector('#commandSetTable tbody').innerHTML = '';
+    }
 }

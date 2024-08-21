@@ -1,6 +1,6 @@
 # Webserial API for controllers
 
-lcd/oled/tft display controller's commands via Web Serial API.
+lcd/oled/tft display controller's low-level commands via Web Serial API.
 
 Useful for explore/troubleshoot brightness-related and geometry-related parameters (Bias, Regulation Resistor Ratio, Electronic Volume, Booster, line/column shift etc).
 
