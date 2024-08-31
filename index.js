@@ -4,7 +4,7 @@
  * 
  */
 
-const COMMAND_SET_ROW_PREFIX = 'csrow_';
+const COMMAND_SET_ROW_PREFIX = 'csrows_';
 
 /**
  * 
@@ -42,10 +42,6 @@ function onThisPageLoad() {
     toggleEditMode(false);
     fillHex();
 
-    /*const ijns = document.querySelector('.tab-container .tab-content').querySelectorAll('.tab-content-item');
-    ijns.forEach(ijn => ijn.style.width = '900px' );
-    */
-
     // Adjust the height of the textarea based on its content
     const commands_textareas = document.querySelectorAll('#commandSetTable textarea');
     commands_textareas.forEach(cmd_txtA => {
@@ -81,10 +77,12 @@ function resizable_cells_init(resizable_cells) {
             resizable_td.appendChild(resizer_div);
 
             resizable_td.addEventListener('mousedown', function (e) {
-                startX = e.pageX;
-                startWidth = parseFloat(window.getComputedStyle(resizable_td).width);
-                document.addEventListener('mousemove', resizeColumn);
-                document.addEventListener('mouseup', stopResize);
+                if (document.getElementById('tableEditEnabled').style.display != 'none') {
+                    startX = e.pageX;
+                    startWidth = parseFloat(window.getComputedStyle(resizable_td).width);
+                    document.addEventListener('mousemove', resizeColumn);
+                    document.addEventListener('mouseup', stopResize);
+                }
             });
 
             /**
@@ -118,9 +116,15 @@ function resizable_cells_init(resizable_cells) {
 
 /**
  * Save page state: active tab, etc (except command set table)
- * @param {any} event
+ * @param {event} evt
  */
 function tabSwitched(evt) {
+    document.querySelectorAll('#content1 *').forEach(c_div => {
+        console.log(c_div.tagName, window.getComputedStyle(c_div).width);
+    });
+    console.log('-----');
+    console.log('c2', window.getComputedStyle(document.querySelector('#content2')).width);
+    console.log('-----');
     savePageSettings(evt);
 }
 function savePageSettings(evt) {
@@ -292,12 +296,39 @@ function toggleEditMode(enable_edit_mode) {
         document.getElementById('tableEditEnabled').style.display = 'none';
         document.querySelectorAll('#saveUndoButtons button').forEach(one_button => { one_button.disabled = true });
         savePageSettings();
+        saveCommandSetTable();
     }
 }
 
+/**
+ * Blink background of controller name input
+ * @param   {number}  blink_counter      The blink counter.
+ * @param   {number}  blink_interval     The blink interval.
+ * @param   {Element} dd_input           The input DOM element.
+ * @param   {string}  blink_color        Temporary css color
+ * @param   {string}  dd_input_bg_orig   Original dd input background color.
+ */
+
+function blinkPink(blink_counter, blink_interval, dd_input, blink_color, dd_input_bg_orig) {
+    setTimeout(() => {
+        if (blink_counter > 0) {
+            dd_input.style.backgroundColor = (dd_input.style.backgroundColor == blink_color) ? dd_input_bg_orig : blink_color;
+            blinkPink(blink_counter - 1, blink_interval, dd_input, blink_color, dd_input_bg_orig)
+        } else {
+            dd_input.style.backgroundColor = dd_input_bg_orig;
+        }
+    }, blink_interval);
+}
 
 function saveCommandSetTable() {
-    const controller_name = document.getElementById('selectedControllerName').value;
+    const dd_input = document.getElementById('selectedControllerName');
+    const controller_name = dd_input.value;
+
+    if (controller_name == '') {
+        blinkPink(15, 100, dd_input, 'pink', dd_input.style.backgroundColor); // 'unset'
+        return;
+    }
+
     const command_set_rows = document.querySelectorAll('#commandSetTable tbody tr');
     let rows_arr = [];
     command_set_rows.forEach(command_set_row => {
@@ -309,11 +340,11 @@ function saveCommandSetTable() {
                 acc_b.push(curr_b + cmd_bits[idx_b]);
                 return acc_b;
             }, []);
-            cmd_bytes_arr.push(fov_plus_bits);
+            cmd_bytes_arr.push(fov_plus_bits.join(''));
         }); 
         rows_arr.push([
             command_set_row.cells[0].querySelector('textarea').value,
-            cmd_bytes_arr,
+            cmd_bytes_arr.join('-'),
             command_set_row.cells[3].querySelector('textarea').value,
         ]);
     });
@@ -331,7 +362,6 @@ function saveCommandSetTable() {
 function undoCommandSetTableEdit() {
     const controller_name = document.getElementById('selectedControllerName').value;
     const command_set_table_json = localStorage.getItem(COMMAND_SET_ROW_PREFIX + controller_name);
-    console.log(command_set_table_json);
     if (command_set_table_json) {
         const command_set_table_parsed = JSON.parse(command_set_table_json);
         let table_tbody = document.querySelector('#commandSetTable tbody');
@@ -342,11 +372,11 @@ function undoCommandSetTableEdit() {
             row_clone.querySelector('tr td:nth-of-type(1) textarea').value = current_row_saved[0];
             table_tbody.appendChild(row_clone);
             let row_just_added = table_tbody.querySelector('tr:last-of-type');
-            current_row_saved[1].forEach((cmd_byte, cmd_byte_idx) => {
+            current_row_saved[1].split('-').forEach( (cmd_byte, cmd_byte_idx) => {
                 row_just_added.querySelector(`tr td form input[type="radio"][name="commandLength"][value="${cmd_byte_idx + 1}"]`).click();
                 row_just_added.querySelectorAll(`tr td:nth-of-type(2) .mcu-cmd:nth-child(${cmd_byte_idx + 1}) b`).forEach((bit_span, bit_span_idx) => {
-                    bit_span.dataset.fov = cmd_byte[bit_span_idx][0];
-                    bit_span.innerHTML = cmd_byte[bit_span_idx][1];
+                    bit_span.dataset.fov = cmd_byte[bit_span_idx*2];
+                    bit_span.innerHTML = cmd_byte[bit_span_idx*2+1];
                 });
             });
             row_just_added.querySelector('tr td:nth-of-type(4) textarea').value = current_row_saved[2];
@@ -407,9 +437,9 @@ async function connectSerial() {
         await web_serial_port.open({ baudRate: 9600 });
 
         const port_info_entries = Object.entries(web_serial_port.getInfo());
-        document.getElementById('portConnectionStatus').innerHTML = 'Port information: ' + port_info_entries.toString();
+        document.getElementById('portConnectionStatus').innerHTML = 'Port connected: ' + port_info_entries.toString().replaceAll(',', ', ');
 
-        document.getElementById('portConnectionStatus').closest('td').classList.add('editModeBgColorized');
+        document.getElementById('portConnectionStatus').closest('td').classList.add('portConnected');
 
 
 
@@ -428,15 +458,19 @@ async function connectSerial() {
     }
 }
 
-async function sendString(clickedElement) {
+
+function buildCmdString(clickedElement) {
+    const cmd_bytes = clickedElement.closest('td').previousElementSibling.previousElementSibling.previousElementSibling.querySelectorAll('.mcu-cmd');
+    let str_to_send = '';
+    cmd_bytes.forEach(cmd_byte => { str_to_send += '0b' + cmd_byte.textContent + ','; });
+    return str_to_send.slice(0, -1) + '\n';
+}
+async function sendStringToMCU(clickedElement) {
     if (!web_serial_writer) {
         console.log('Serial port is not open');
         return;
     }
-    const cmd_bytes = clickedElement.closest('td').previousElementSibling.previousElementSibling.previousElementSibling.querySelectorAll('.mcu-cmd');
-    let str_to_send = '';
-    cmd_bytes.forEach( cmd_byte => { str_to_send += '0b' + cmd_byte.textContent + ','; });            
-    str_to_send = str_to_send.slice(0, -1) + '\n';
+    let str_to_send = buildCmdString(clickedElement);
     if (str_to_send) {
         const data = new TextEncoder().encode(str_to_send); // Convert to byte array
         await web_serial_writer.write(data); // Write to the serial port
@@ -447,13 +481,57 @@ async function sendString(clickedElement) {
 }
 
 
+function sendStringToSeq(clickedElement) {
+    let str_to_send = buildCmdString(clickedElement);
+    const seq_ta = document.getElementById('commandSequence');
+    seq_ta.value = seq_ta.value + str_to_send;
+}
+
+
+
+/**
+ * Build dropdown list from given array of strings
+ * 
+ * @param   {Element}   a           div container for dropdown list
+ * @param   {Element}   inp         Input (type=text)
+ * @param   {string[]}  arr         The array of strings (controller's names)
+ * @param   {string}    val         The value already entered by user (typically - part of controller name).
+ * @param   {string}    sel_c       The controller name, selected before user start typing.
+ * @param   {string}    img_name    
+ * @param   {function}  callback    closeAllLists()               
+ * 
+ * @returns .
+ */
+
+function loopDD(a, inp, arr, val, sel_c, img_name, callback) {
+    for (i = 0; i < arr.length; i++) {
+        //if ((arr[i].toLowerCase().includes(val.toLowerCase().trim())) || val == ' ' ) {
+        let iof = arr[i].toLowerCase().indexOf(val.toLowerCase().trim());
+        if (iof >= 0 || val == ' ') {
+            b = document.createElement("DIV");
+            // b.innerHTML = arr[i].replace(new RegExp(val.trim(), "i"), "<strong>$&</strong>");
+            const iofe = iof + val.trim().length;
+            const ipp = arr[i].slice(iof, iofe).replace(new RegExp('[\\+\\-\\_ ]', 'g'), '<em style="text-shadow: 1px 1px;">$&</em>');
+            b.innerHTML = `<img src="${img_name}" />${arr[i].slice(0, iof)}<strong>${ipp}</strong>${arr[i].slice(iofe)}`;
+            b.innerHTML += "<input type='hidden' value='" + arr[i] + "'>";
+            b.addEventListener("click", function () {
+                inp.value = this.getElementsByTagName("input")[0].value.trim();
+                sel_c.selectedName = inp.value;
+                undoCommandSetTableEdit();
+                callback();
+            });
+            document.getElementById('commandSetTable').classList.add('disabledTable');
+            a.appendChild(b);
+        }
+    }
+}
 
 function autocomplete(inp, arr) {
     var currentFocus;
-    let selected_controller_name = '';
+    let selected_controller = { selectedName: '' };
     inp.addEventListener("input", function () {
         arr = Array.from(localStorageGetKeysAll(COMMAND_SET_ROW_PREFIX));
-        var a, b, i, val = this.value;
+        let a, b, val = this.value;
         this.value = this.value.trimStart();
         closeAllLists();
         if (!val) { return false; }
@@ -462,33 +540,16 @@ function autocomplete(inp, arr) {
         a.setAttribute("id", this.id + "autocomplete-list");
         a.setAttribute("class", "autocomplete-items");
         this.parentNode.appendChild(a);
-        for (i = 0; i < arr.length; i++) {
-            //if ((arr[i].toLowerCase().includes(val.toLowerCase().trim())) || val == ' ' ) {
-            let iof = arr[i].toLowerCase().indexOf(val.toLowerCase().trim());
-            if (iof >= 0 || val == ' ') {
-                b = document.createElement("DIV");
-                // b.innerHTML = arr[i].replace(new RegExp(val.trim(), "i"), "<strong>$&</strong>");
-                const iofe = iof + val.trim().length;
-                const ipp = arr[i].slice(iof, iofe).replace(new RegExp('[\\+\\-\\_ ]', 'g'), '<em style="text-shadow: 1px 1px;">$&</em>');
-                b.innerHTML = `${arr[i].slice(0, iof)}<strong>${ipp}</strong>${arr[i].slice(iofe)}`;
-                b.innerHTML += "<input type='hidden' value='" + arr[i] + "'>";
-                b.addEventListener("click", function () {
-                    inp.value = this.getElementsByTagName("input")[0].value.trim();
-                    selected_controller_name = inp.value;
-                    undoCommandSetTableEdit();
-                    closeAllLists();
-                    
-                });
-                document.getElementById('commandSetTable').classList.add('disabledTable');
-                a.appendChild(b);
-            }
-        }
+        loopDD(a, inp, arr, val, selected_controller, 'localfolder.png', closeAllLists);
+
+        getControllerFormCloud(a, inp, val, selected_controller, closeAllLists);
+
         if (a.querySelectorAll('div').length == 0) {
             // no suitable controller name found
             const controller_name_actions = new Map([
                 ['NEW BLANK CONTROLLER', (ttb) => { ttb.innerHTML = ''; ttb.appendChild(document.importNode(document.getElementById('empty-row-template').content, true)); }],
                 ['NEW CLONED CONTROLLER', () => { saveCommandSetTable() }],
-                ['RENAME CURRENT CONTROLLER', () => { if (confirm("Really rename?")) { saveCommandSetTable(); localStorage.removeItem(COMMAND_SET_ROW_PREFIX + selected_controller_name); } }]
+                ['RENAME CURRENT CONTROLLER', () => { if (confirm("Really rename?")) { saveCommandSetTable(); localStorage.removeItem(COMMAND_SET_ROW_PREFIX + selected_controller.selectedName); } }]
             ]);
 
             for (const single_action of controller_name_actions.keys()) { // controller_name_actions.forEach(single_action => 
@@ -540,13 +601,19 @@ function autocomplete(inp, arr) {
 
     function closeAllLists(elmnt) {
         var x = document.getElementsByClassName("autocomplete-items");
+        let dd_list_at_closing_time = false;
         for (var i = 0; i < x.length; i++) {
             if (elmnt != x[i] && elmnt != inp) {
                 x[i].parentNode.removeChild(x[i]);
-                document.getElementById('commandSetTable').classList.remove('disabledTable');
+                dd_list_at_closing_time = true;
+                
                 if (arguments.length > 0)
-                    inp.value = selected_controller_name;
+                    inp.value = selected_controller.selectedName;
             }
+        }
+        if (dd_list_at_closing_time) {
+            document.getElementById('commandSetTable').classList.remove('disabledTable');
+            if (inp.value == '') blinkPink(15, 100, inp, 'pink', inp.style.backgroundColor); // 'unset'
         }
     }
 
@@ -564,3 +631,18 @@ function deleteLocallySavedController() {
         document.querySelector('#commandSetTable tbody').innerHTML = '';
     }
 }
+
+
+function generateNewController() {
+    const ttb = document.querySelector('#commandSetTable tbody');
+    ttb.innerHTML = '';
+    ttb.appendChild(document.importNode(document.getElementById('empty-row-template').content, true));
+    document.getElementById('selectedControllerName').value = 'Untitled 1';
+    const but2pink = document.getElementById('toggleEditModeButton');
+
+    blinkPink(15, 100, but2pink, 'pink', but2pink.style.backgroundColor);
+}
+
+
+
+

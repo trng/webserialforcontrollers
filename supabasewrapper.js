@@ -65,7 +65,7 @@ function supabaseWrapperOnload() {
             console.log('Please authenticate first');
             return;
         }
-            
+
 
         // Insert a new message into the messages table
         saveCommandSetTable();
@@ -74,7 +74,7 @@ function supabaseWrapperOnload() {
         const { data, error } = await supabaseClient
             .from('lcdoledtftcontrollers')
             .insert(
-                [{ controller_name: controller_name_for_upload, command_set: command_set_for_upload }]
+                { controller_name: controller_name_for_upload, command_set: JSON.parse(command_set_for_upload) }
             );
 
         if (error)
@@ -95,6 +95,33 @@ function supabaseWrapperOnload() {
 }
 
 /**
+ * @fn  async function getControllerFormCloud()
+ *
+ * @brief   Gets controller form cloud
+ *
+ * @returns {function}  The controller form cloud.
+ */
+
+async function getControllerFormCloud(a, inp, val, sel_c, callback) {
+    // Retrieve the message from the messages table
+    const { data: messages, error: fetchError } = await supabaseClient
+        .from('lcdoledtftcontrollers')
+        .select('*');
+
+    if (fetchError)
+        console.error('Error fetching data:', fetchError);
+    else {
+        console.log('Fetched messages:', messages);
+
+        // getControllerFormCloud(a, inp, val, selected_controller, closeAllLists);
+        loopDD(a, inp, messages.map(row => row.controller_name), val, sel_c, 'cloudicon.png', callback);
+    }
+        
+}
+
+
+
+/**
  * 
  * Check if the user is authenticated
  * @returns {Boolean}
@@ -104,13 +131,59 @@ async function checkSession() {
 
     if (error) {
         console.error('Error fetching session:', error.message);
+        document.getElementById('push-record-button').closest('td').classList.remove('editModeBgColorized');
+        document.querySelector('#cloudSignUpAndSignIn p input').value = '';
+        document.getElementById('editUserNameButId').disabled = true;
         return false;
     } else if (!session) {
         console.log('User not authenticated');
+        document.getElementById('push-record-button').closest('td').classList.remove('editModeBgColorized');
+        document.querySelector('#cloudSignUpAndSignIn p input').value = '';
+        document.getElementById('editUserNameButId').disabled = true;
         return false;
     } else {
         console.log('User authenticated:', session.user);
+        console.log('session.user ', session.user.app_metadata.provider);
+        const { data: { user } } = await supabaseClient.auth.getUser();
+        document.getElementById('editUserNameButId').disabled = false;
+        document.getElementById('push-record-button').closest('td').classList.add('editModeBgColorized');
+        document.querySelector('#cloudSignUpAndSignIn p input').value = session.user.user_metadata.display_name;
         return true;
     }
 }
+
+
+
+/**
+ * @brief   Enable/disable user name input editing
+ * @param   {Element} this_input  html input to be enabled/disabled.
+ * @returns .
+ */
+
+function editUserName() {
+    let inp = document.querySelector('#cloudSignUpAndSignIn p input');
+    if (inp.disabled) {
+        inp.dataset.oldValue = inp.value;
+    } else {
+        inp.value = inp.dataset.oldValue;
+    }
+
+    inp.disabled = !inp.disabled;
+
+}
+
+/**
+ * @brief   Send new user name to cloud
+ * @returns .
+ */
+async function sendUserName() {
+    const inp = document.querySelector('#cloudSignUpAndSignIn p input');
+    inp.disabled = true;
+    const { data, error } = await supabaseClient.auth.updateUser({
+        data: { display_name: inp.value }
+    });
+    if (error) console.error('Error update User:', error);
+}
+
+
 

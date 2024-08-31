@@ -4,6 +4,7 @@ fieldset {
 
 :root {
     --tabs-bg-color: #fafafa;
+    --tabs-td-bg-color: #f4f4f4;
     --tabs-border-color: #ccc;
     --green-for-edit-mode: rgb(211,255,211);
     --green-for-fixed-bit: rgb(101,233,101);
@@ -25,9 +26,23 @@ fieldset {
 
 
 
-td.editModeBgColorized:has(textarea), td.editModeBgColorized:has(#saveUndoButtons) {
+td.editModeBgColorized:has(textarea), td.editModeBgColorized:has(#saveUndoButtons), td.editModeBgColorized:has(#push-record-button) {
     background-color: var(--green-for-edit-mode);
 }
+
+#cloudSigInStatus::before {
+    content: 'Dis';
+}
+
+td.editModeBgColorized #cloudSigInStatus::before {
+    content: '';
+}
+
+td.portConnected {
+    background-color: var(--green-for-edit-mode);
+}
+
+
 
 td.editModeBgColorized div.mcu-cmd b[data-fov="v"] {
     background-color: var(--varbit-edit-bg-color);
@@ -39,11 +54,12 @@ td.editModeBgColorized div.mcu-cmd b[data-fov="f"] {
 
 
 .tab-container {
-    width: 100%;
+    width: 97%;
 }
 
 .tab-button {
     display: inline-block;
+    user-select: none;
     padding: 10px;
     text-align: center;
     cursor: pointer;
@@ -63,15 +79,16 @@ input[name="tabRadio"]:not(:checked) + label {
 
 
 .tab-content {
+    display: flex;
     border: 1px solid var(--tabs-border-color);
     border-radius: 0 0 5px 5px;
     background-color: var(--tabs-bg-color);
     padding: 0.5em;
-    width:100%;
+    width: 95%;
 }
 
 .tab-content-item {
-    width: 100%;
+    width: fit-content;
     display: none;
 }
 
@@ -87,6 +104,7 @@ input#tab4:checked ~ .tab-content #content4,
 input#tab5:checked ~ .tab-content #content5,
 input#tab6:checked ~ .tab-content #content6 {
     display: block;
+    flex: 1;
 }
 
 input#tab1:checked ~ .tab-button[for="tab1"],
@@ -102,8 +120,11 @@ input#tab6:checked ~ .tab-button[for="tab6"] {
 
 
 #disclaimerDiv table {
-    font-size: .935em;
+    font-size: .89em;
+    width: fit-content;
 }
+
+
 
 #disclaimerDiv table tr td, #disclaimerDiv table tr th, #commandSetTable tr td, #commandSetTable tr th {
     border: 1px solid black;
@@ -111,23 +132,22 @@ input#tab6:checked ~ .tab-button[for="tab6"] {
     padding: 0.5em;
 }
 
+
+
 #disclaimerDiv ul {
     margin-top: 0;
-}
+    padding-left:2em;
 
-#disclaimerDiv ul li span {
-    display: inline-block;
-    width: 8em;
 }
-
-
-#cloudSignUpAndSignIn input[type="email"], #cloudSignUpAndSignIn input[type="password"]  {
-    width: 10em;
-}
-
-#authWithEmail {
-    padding: 1em;
-}
+    #disclaimerDiv ul li {
+        padding-left: 0;
+        margin-left: 0;
+    }
+    
+    #disclaimerDiv ul li span {
+        display: inline-block;
+        width: 8em;
+    }
 
 
 
@@ -143,6 +163,81 @@ label:has(input[name="controllerIFcheckbox"]) {
     border-color: var(--tabs-border-color);
 }
 
+
+
+/*#cloudSignUpAndSignIn p:has(input[disabled]) {
+    color:lightgray;
+}*/
+
+#cloudSignUpAndSignIn table {
+    border-spacing: 1.75em 0;
+    font-size: .95em;
+}
+
+    #cloudSignUpAndSignIn table td {
+        vertical-align: top;
+        text-align: left;
+        background-color: var(--tabs-td-bg-color);
+        padding: 0 .5em .5em .5em;
+    }
+
+
+    #cloudSignUpAndSignIn table input, #cloudSignUpAndSignIn table button {
+        border-spacing: 1em 0;
+        font-size: .8em;
+    }
+
+
+
+#cloudSignUpAndSignIn table td b {
+    display: inline-block;
+    text-align: left;
+    width: 4.5em;
+    font-weight: normal;
+    font-size: .75em;
+}
+    #cloudSignUpAndSignIn table td p:first-child {
+        color: gray;
+        font-weight: bold;
+    }
+
+    #cloudSignUpAndSignIn table td p em {
+        font-size: .85em;
+    }
+
+    #cloudSignUpAndSignIn input[readonly] {
+        border: none;
+        background-color: transparent;
+    }
+
+#cloudSignUpAndSignIn p input + button {
+    width: 8em;
+}
+
+    #cloudSignUpAndSignIn p input:disabled + button + button {
+        pointer-events: none;
+        opacity: 0.5;
+    }
+
+
+#cloudSignUpAndSignIn table tbody tr td input:disabled + br + button span::before {
+    content: 'Edit user name';
+}
+
+#cloudSignUpAndSignIn p input + button span::before {
+    content: 'Undo editing';
+}
+
+
+
+#cloudSignUpAndSignIn input[type="email"], #cloudSignUpAndSignIn input[type="password"], #cloudSignUpAndSignIn table button {
+    width: 9em;
+    margin: .15em 0 .15em 0;
+}
+
+
+
+
 #setOfButtons {
     margin-bottom: 1em;
 }
@@ -150,8 +245,6 @@ label:has(input[name="controllerIFcheckbox"]) {
     #setOfButtons td {
         vertical-align: top;
         padding: .5em;
-        word-break: break-all;
-        overflow-wrap: break-word;
     }
 
     #setOfButtons:not(td:first-child) {
@@ -238,7 +331,9 @@ label:has(input[name="controllerIFcheckbox"]) {
         top:0.25em;
     }
 
-
+#commandSetTable .columnWidthResizable {
+    min-width: 10em;
+}
 
 
 .mcu-cmd {
@@ -292,8 +387,25 @@ label:has(input[name="controllerIFcheckbox"]) {
     font-size: 18px;
 }
 
+.cmd-byte-actions {
+    text-align: center;
+    line-height: 1.5em;
+}
+
+    .cmd-byte-actions button {
+        font-weight: bold;
+        width: 5em;
+    }
 
 
+#commandSequence {
+    width: 95%;
+    max-width:95%;
+}
+
+    #commandSequence::placeholder {
+        color: lightgray;
+    }
 
 
 
@@ -326,7 +438,7 @@ div.resizer { /*th .resizer, td */
 }
 
 #selectedControllerName {
-    width: 90%;
+    width: 85%;
     padding: .25em .25em .25em .25em;
     margin: 2px;
     font-family: inherit;
@@ -358,6 +470,8 @@ div.resizer { /*th .resizer, td */
     top: 100%;
     left: 0;
     right: 0;
+    max-height: 200px; /* Set a max-height for the dropdown */
+    overflow-y: auto; /* Enable vertical scrolling */
 }
 
     .autocomplete-items div {
@@ -369,6 +483,16 @@ div.resizer { /*th .resizer, td */
         .autocomplete-items div:hover {
             background-color: var(--fixbit-edit-bg-color);
         }
+
+        .autocomplete-items div img {
+            width: 1.25em;
+            height: 1em;
+            object-fit: contain;
+            position: relative;
+            top: .22em;
+            margin-right: .45em;
+        }
+
 
 
 

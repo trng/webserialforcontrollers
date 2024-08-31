@@ -14,7 +14,7 @@
         <h4>LED/OLED/TFT display controller commands via Web Serial API (<a href="https://github.com/trng/webserialforcontrollers/">https://github.com/trng/webserialforcontrollers/</a>)</h4>
     </div>
     <div style="float: left;">
-        <fieldset class="tab-container" onchange="tabSwitched(event)">
+        <fieldset id="tabssetid" class="tab-container" onchange="tabSwitched(event)">
             <input type="radio" id="tab1" name="tabRadio" checked>
             <label for="tab1" class="tab-button">Disclaimer</label>
 
@@ -43,15 +43,15 @@
                                     <ul>
                                         <li>edge://flags/#enable-experimental-web-platform-features</li>
                                         <li>chrome://flags/#enable-experimental-web-platform-features</li>
-                                        <li>opera://flags Experimental Web Platform features</li>
+                                        <li>opera://flags#enable-experimental-web-platform-features</li>
                                     </ul>
                                 </td>
                                 <td>
                                     <div>URI schemes supported:</div>
                                     <ul>
-                                        <li><span>for remote sites</span> : https://</li>
-                                        <li><span>for localhost</span> : https://, http://</li>
-                                        <li><span>for local filesystem</span> : file://</li>
+                                        <li><span>for remote sites</span>: https://</li>
+                                        <li><span>for localhost</span>: https://, http://</li>
+                                        <li><span>for local filesystem</span>: file://</li>
                                     </ul>
                                 </td>
                             </tr>
@@ -71,17 +71,35 @@
                 </div>
                 <div id="content3" class="tab-content-item">
                     <div id="cloudSignUpAndSignIn">
-                        <p><strong>Save to WebSerialForControllers Cloud</strong></p>
                         <table>
                             <tr>
-                                <td>With email:</td>
                                 <td>
-                                    Sign Up <input type="email" id="sign-up-email" placeholder="Email" /> <input type="password" id="sign-up-password" placeholder="Password" /> <button id="email-sign-up-button">Sign Up</button><br>
-                                    Sign In <input type="email" id="sign-in-email" placeholder="Email" /> <input type="password" id="sign-in-password" placeholder="Password" /> <button id="email-sign-in-button">Sign In</button>
+                                    <p>Sign Up with email</p>
+                                    <b>email:</b><br /> <input type="email" id="sign-up-email" placeholder="Email" /><br />
+                                    <b>password:</b><br /> <input type="password" id="sign-up-password" placeholder="Password" /><br />
+                                    <b>confirm:</b><br /> <input type="password" id="sign-up-password-confirm" placeholder="Confirm Password" /><br />
+                                </td>
+                                <td>
+                                    <p>Sign In with email</p>
+                                    <b>e-mail:</b> <br /><input type="email" id="sign-in-email" placeholder="Email" /><br />
+                                    <b>password:</b> <br /><input type="password" id="sign-in-password" placeholder="Password" />
+                                </td>
+                                <td>
+                                    <p>Sign In with github</p>
+                                    <p><em>(you will be redirected<br />to github auth page)</em></p>
+                                </td>
+                                <td>
+                                    Logged-in user: <input type="text" value="" disabled><br />
+                                    <button id="editUserNameButId" onclick="editUserName()" disabled><span> </span></button><br />
+                                    <button onclick="sendUserName()">Send a new name to cloud</button>
                                 </td>
                             </tr>
-                            <tr><td>With github:</td><td><button id="github-sign-in-button">Sign In</button></td></tr>
-                            <tr><td colspan="2"><button id="supabase-logout-button">Logout from Cloud</button></td></tr>
+                            <tr>
+                                <td><b> </b><br /><button id="email-sign-up-button">Sign Up</button></td>
+                                <td><b> </b><br /><button id="email-sign-in-button">Sign In</button></td>
+                                <td><b> </b><br /><button id="github-sign-in-button">Sign In</button></td>
+                                <td><b> </b><br /><button id="supabase-logout-button" disabled>Logout from Cloud</button></td>
+                            </tr>
                         </table>
 
                         <script>
@@ -98,7 +116,7 @@
                     </div>
                 </div>
                 <div id="content4" class="tab-content-item">
-                    <p>Command sequence</p>
+                    <textarea id="commandSequence" placeholder="Command sequence"></textarea>
                 </div>
                 <div id="content5" class="tab-content-item">
                     <div>In command set editing mode:</div>
@@ -117,10 +135,10 @@
             <tr>
                 <td>
                     <div><button type="button" onclick="connectSerial()" style="width: 15em">Connect to COM port</button></div>
-                    <div><span id="portConnectionStatus">Port disconnected</span></div>
+                    <div id="portConnectionStatus">Port disconnected</div>
                 </td>
                 <td>
-                    <div><button type="button" onclick="toggleEditMode()" style="width: 15em">Toggle command set editing</button></div>
+                    <div><button id="toggleEditModeButton" type="button" onclick="toggleEditMode()" style="width: 15em">Toggle command set editing</button></div>
                     <div>
                         <span id="tableEditDisabled" style="display: inline;">Edit mode disabled.<br /><strong>&nbsp;</strong></span>
                     </div>
@@ -133,7 +151,7 @@
                 </td>
                 <td>
                     <div><button id="push-record-button">Push controller to cloud</button></div>
-                    <div>Cloud disconnected</div>
+                    <div>Cloud <span id="cloudSigInStatus">connected</span></div>
                     <div>&nbsp;</div>
                     <div>&nbsp;</div>
                 </td>
@@ -146,8 +164,8 @@
                 <!-- <td><div class="mcu-cmd" onclick="changeBit(event)"><span class="pwn cmd-fixed-part">0</span><span class="pwn cmd-fixed-part">0</span><span class="pwn cmd-fixed-part">0</span><span class="pwn cmd-fixed-part">0</span><span class="pwn cmd-fixed-part">0</span><span class="pwn cmd-fixed-part">0</span><span class="pwn cmd-variable-part">0</span><span class="pwn cmd-variable-part">0</span></div></td> -->
                 <td><div class="mcu-cmd" onclick="changeBit(event)"><b data-fov="f">0</b><b data-fov="f">0</b><b data-fov="f">0</b><b data-fov="f">0</b><b data-fov="f">0</b><b data-fov="v">0</b><b data-fov="v">0</b><b data-fov="v">0</b></div></td>
                 <td class="mcu-cmd-hex"></td>
-                <td class=""><textarea readonly disabled oninput="this.style.height = 'auto'; this.style.height = this.scrollHeight + 'px';"></textarea></td>
-                <td><button type="button" class="sendButton" onclick="sendString(this)">Send</button></td>
+                <td><textarea readonly disabled oninput="this.style.height = 'auto'; this.style.height = this.scrollHeight + 'px';"></textarea></td>
+                <td class="cmd-byte-actions"><button type="button" onclick="sendStringToMCU(this)">To MCU</button><br /><button type="button" onclick="sendStringToSeq(this)">To Seq</button></td>
                 <td>
                     <form onchange="commandLengthChanged(event)">
                         <button type="button" onclick="delRow(event)" title="Delete row">Del</button>
@@ -166,6 +184,7 @@
             <div class="autocomplete">
                 <input id="selectedControllerName" type="text" name="selectedControllerName" placeholder="Controller name (space - show all locally saved). Start typing...">
                 <button onclick="deleteLocallySavedController()">Del</button>
+                <button onclick="generateNewController()">New</button>
             </div>
         </div>
 
@@ -174,7 +193,7 @@
                 <tr>
                     <th class="columnWidthResizable">Instruction</th>
                     <th>Command byte(s)<br><span class="mcu-cmd-legend"><b>7</b><b>6</b><b>5</b><b>4</b><b>3</b><b>2</b><b>1</b><b>0</b></span></th>
-                    <th>Hex</th>
+                    <th style="min-width: 3em;">Hex</th>
                     <th class="columnWidthResizable">Description</th>
                     <th>Action</th>
                     <th>Row editor</th>
@@ -192,6 +211,25 @@
     </div>
 
     <script>
+        // Get the query string from the current URL
+        const queryString = window.location.href;
+
+        // Create a URLSearchParams object
+        var urlParams = new URLSearchParams(queryString);
+
+        // Access individual parameters
+        //const paramValue = urlParams.get('paramName'); // Replace 'paramName' with your query parameter name
+        // console.log(paramValue);
+
+
+        console.log("urlParams.size ", urlParams.size);
+        checkSession();
+
+        // Loop through all parameters
+        //urlParams.forEach((value, key) => {
+        //    console.log(`${key}: ${value}`);
+        //});
+
         onThisPageLoad();
         supabaseWrapperOnload();
     </script>
