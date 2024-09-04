@@ -38,6 +38,7 @@ function supabaseWrapperOnload() {
             console.error('Sign-in error:', error.message);
         else
             console.log('Sign-in data:', data);
+        checkSession();
     });
 
     // Github Sign In
@@ -50,7 +51,7 @@ function supabaseWrapperOnload() {
             console.error('Sign-in error:', error.message);
         else
             console.log('Sign-in data:', data);
-        checkSession()
+        checkSession();
     });
 
     // Define an async function to interact with the database
@@ -127,27 +128,32 @@ async function getControllerFormCloud(a, inp, val, sel_c, callback) {
  * @returns {Boolean}
  */
 async function checkSession() {
+    /** @param {boolean} is_success */
+    function checkSessionHelper(is_success) {
+        document.getElementById('editUserNameButId').disabled = !is_success;
+        document.getElementById('supabase-logout-button').disabled = !is_success;
+    }
     const {data: {session}, error } = await supabaseClient.auth.getSession();
 
     if (error) {
         console.error('Error fetching session:', error.message);
+        checkSessionHelper(false);
         document.getElementById('push-record-button').closest('td').classList.remove('editModeBgColorized');
         document.querySelector('#cloudSignUpAndSignIn p input').value = '';
-        document.getElementById('editUserNameButId').disabled = true;
         return false;
     } else if (!session) {
         console.log('User not authenticated');
         document.getElementById('push-record-button').closest('td').classList.remove('editModeBgColorized');
-        document.querySelector('#cloudSignUpAndSignIn p input').value = '';
-        document.getElementById('editUserNameButId').disabled = true;
+        document.getElementById('loggedInNameInp').value = '';
+        checkSessionHelper(false);
         return false;
     } else {
         console.log('User authenticated:', session.user);
         console.log('session.user ', session.user.app_metadata.provider);
         const { data: { user } } = await supabaseClient.auth.getUser();
-        document.getElementById('editUserNameButId').disabled = false;
         document.getElementById('push-record-button').closest('td').classList.add('editModeBgColorized');
-        document.querySelector('#cloudSignUpAndSignIn p input').value = session.user.user_metadata.display_name;
+        document.querySelector('#cloudSignUpAndSignIn table td.loggedInTd input').value = session.user.user_metadata.display_name;
+        checkSessionHelper(true);
         return true;
     }
 }
@@ -161,15 +167,15 @@ async function checkSession() {
  */
 
 function editUserName() {
-    let inp = document.querySelector('#cloudSignUpAndSignIn p input');
+    let inp = document.getElementById('loggedInNameInp');
     if (inp.disabled) {
         inp.dataset.oldValue = inp.value;
     } else {
         inp.value = inp.dataset.oldValue;
+        document.getElementById('userNameError').innerHTML = '&nbsp;';
     }
 
     inp.disabled = !inp.disabled;
-
 }
 
 /**
@@ -177,13 +183,46 @@ function editUserName() {
  * @returns .
  */
 async function sendUserName() {
-    const inp = document.querySelector('#cloudSignUpAndSignIn p input');
+    const inp = document.getElementById('loggedInNameInp');
+    if (inp.dataset.oldValue == inp.value) return;
+    const isUnique = await checkDisplayNameUnique(inp.value);
+    if (isUnique) {
+        document.getElementById('userNameError').innerHTML = '&nbsp;';
+    } else {
+        return;
+    }
     inp.disabled = true;
     const { data, error } = await supabaseClient.auth.updateUser({
         data: { display_name: inp.value }
     });
     if (error) console.error('Error update User:', error);
+    checkSession();
 }
 
 
+/**
+ * Usage:
+ *
+ * const isUnique = await checkDisplayNameUnique(inp.value);
+ * if (!isUnique) {
+ *     alert("This display name is already taken. Please choose a different one.");
+ * } else {
+ *     // Proceed with updating the display name
+ * }
+ * 
+ * @param {string} displayName
+ * @returns {Boolean}
+ */
 
+async function checkDisplayNameUnique(displayName) {
+    const { data, error } = await supabaseClient
+        .rpc('is_display_name_unique', { display_name: displayName });
+
+    if (error) {
+        console.error("Error checking display name uniqueness:", error.message);
+        document.getElementById('userNameError').innerHTML = error.message;
+        return false; // Handle error appropriately
+    }
+
+    return data; // This will be true or false based on uniqueness
+}

@@ -119,12 +119,6 @@ function resizable_cells_init(resizable_cells) {
  * @param {event} evt
  */
 function tabSwitched(evt) {
-    document.querySelectorAll('#content1 *').forEach(c_div => {
-        console.log(c_div.tagName, window.getComputedStyle(c_div).width);
-    });
-    console.log('-----');
-    console.log('c2', window.getComputedStyle(document.querySelector('#content2')).width);
-    console.log('-----');
     savePageSettings(evt);
 }
 function savePageSettings(evt) {

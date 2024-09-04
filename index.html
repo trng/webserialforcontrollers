@@ -75,30 +75,34 @@
                             <tr>
                                 <td>
                                     <p>Sign Up with email</p>
-                                    <b>email:</b><br /> <input type="email" id="sign-up-email" placeholder="Email" /><br />
-                                    <b>password:</b><br /> <input type="password" id="sign-up-password" placeholder="Password" /><br />
-                                    <b>confirm:</b><br /> <input type="password" id="sign-up-password-confirm" placeholder="Confirm Password" /><br />
+                                    <b>email:</b><input type="email" id="sign-up-email" placeholder="Email" />
+                                    <b>password:</b><input type="password" id="sign-up-password" placeholder="Password" />
+                                    <b>confirm:</b><input type="password" id="sign-up-password-confirm" placeholder="Confirm Password" />
                                 </td>
                                 <td>
                                     <p>Sign In with email</p>
-                                    <b>e-mail:</b> <br /><input type="email" id="sign-in-email" placeholder="Email" /><br />
-                                    <b>password:</b> <br /><input type="password" id="sign-in-password" placeholder="Password" />
+                                    <b>e-mail:</b>
+                                    <input type="email" id="sign-in-email" placeholder="Email" />
+                                    <b>password:</b>
+                                    <input type="password" id="sign-in-password" placeholder="Password" />
                                 </td>
                                 <td>
                                     <p>Sign In with github</p>
                                     <p><em>(you will be redirected<br />to github auth page)</em></p>
                                 </td>
-                                <td>
-                                    Logged-in user: <input type="text" value="" disabled><br />
-                                    <button id="editUserNameButId" onclick="editUserName()" disabled><span> </span></button><br />
-                                    <button onclick="sendUserName()">Send a new name to cloud</button>
+                                <td class="loggedInTd">
+                                    <p>Logged-in user:</p>
+                                    <em id="userNameError">&nbsp;</em>
+                                    <input id="loggedInNameInp" type="text" value="" disabled>
+                                    <button id="editUserNameButId" onclick="editUserName()" disabled><span> </span></button>
+                                    <button id="sendUserNameToCloudBut" onclick="sendUserName()">Send to cloud</button>
                                 </td>
                             </tr>
                             <tr>
                                 <td><b> </b><br /><button id="email-sign-up-button">Sign Up</button></td>
                                 <td><b> </b><br /><button id="email-sign-in-button">Sign In</button></td>
                                 <td><b> </b><br /><button id="github-sign-in-button">Sign In</button></td>
-                                <td><b> </b><br /><button id="supabase-logout-button" disabled>Logout from Cloud</button></td>
+                                <td class="loggedInTd"><b> </b><br /><button id="supabase-logout-button" disabled>Logout from Cloud</button></td>
                             </tr>
                         </table>
 

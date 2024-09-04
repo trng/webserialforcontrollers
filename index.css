@@ -170,7 +170,7 @@ label:has(input[name="controllerIFcheckbox"]) {
 }*/
 
 #cloudSignUpAndSignIn table {
-    border-spacing: 1.75em 0;
+    border-spacing: 1em 0;
     font-size: .95em;
 }
 
@@ -181,24 +181,47 @@ label:has(input[name="controllerIFcheckbox"]) {
         padding: 0 .5em .5em .5em;
     }
 
+        #cloudSignUpAndSignIn table td b {
+            display: block;
+            margin-top: .25em;
+            text-align: left;
+            font-weight: normal;
+            font-size: .75em;
+        }
 
-    #cloudSignUpAndSignIn table input, #cloudSignUpAndSignIn table button {
+#userNameError {
+    display: block;
+    margin-top: .25em;
+    text-align: left;
+    font-weight: normal;
+    font-size: .75em;
+    color: red;
+    max-width: 14em;
+}
+        
+
+
+        #cloudSignUpAndSignIn table td.loggedInTd input, #cloudSignUpAndSignIn table td.loggedInTd button {
+            display: block;
+            margin: .5em auto;
+            width: 14em;
+        }
+
+#cloudSignUpAndSignIn table td.loggedInTd:has(button#editUserNameButId:not(:disabled)) {
+    background-color: var(--varbit-edit-bg-color);
+}
+
+
+#cloudSignUpAndSignIn table input, #cloudSignUpAndSignIn table button {
         border-spacing: 1em 0;
         font-size: .8em;
     }
 
 
-
-#cloudSignUpAndSignIn table td b {
-    display: inline-block;
-    text-align: left;
-    width: 4.5em;
-    font-weight: normal;
-    font-size: .75em;
-}
     #cloudSignUpAndSignIn table td p:first-child {
-        color: gray;
+        color: rgb(52, 50, 108);
         font-weight: bold;
+        text-align: center;
     }
 
     #cloudSignUpAndSignIn table td p em {
@@ -214,17 +237,19 @@ label:has(input[name="controllerIFcheckbox"]) {
     width: 8em;
 }
 
-    #cloudSignUpAndSignIn p input:disabled + button + button {
-        pointer-events: none;
-        opacity: 0.5;
-    }
 
-
-#cloudSignUpAndSignIn table tbody tr td input:disabled + br + button span::before {
+#cloudSignUpAndSignIn table tbody tr td.loggedInTd input:disabled + button span::before {
     content: 'Edit user name';
 }
 
-#cloudSignUpAndSignIn p input + button span::before {
+#cloudSignUpAndSignIn table tbody tr td.loggedInTd input:disabled + button + button {
+    pointer-events: none;
+    opacity: 0.5;
+    user-select: none;
+}
+
+
+#cloudSignUpAndSignIn table tbody tr td.loggedInTd input + button span::before {
     content: 'Undo editing';
 }
 
